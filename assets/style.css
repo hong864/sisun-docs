@@ -1,0 +1,128 @@
+/* sisun-docs 공통 스타일 — 모든 문서가 이 파일을 참조한다.
+   디자인을 바꾸려면 이 파일만 수정하면 전체 문서에 반영된다.
+   Notion 임베드 가독성을 위한 라이트 테마. */
+
+:root {
+  --bg: #ffffff;
+  --fg: #1f2328;
+  --muted: #656d76;
+  --border: #d0d7de;
+  --accent: #1f6feb;
+  --accent-soft: #ddf4ff;
+  --code-bg: #f6f8fa;
+  --table-head: #f6f8fa;
+  --max-width: 860px;
+  --radius: 8px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 32px 20px 80px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, "Apple SD Gothic Neo", "Pretendard",
+    "Segoe UI", Roboto, "Malgun Gothic", sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: var(--max-width); margin: 0 auto; }
+
+/* 문서 헤더(메타 정보) */
+.doc-header {
+  border-bottom: 2px solid var(--fg);
+  padding-bottom: 16px;
+  margin-bottom: 28px;
+}
+.doc-header h1 { margin: 0 0 12px; font-size: 26px; line-height: 1.3; }
+.doc-meta {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 4px 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.doc-meta dt { font-weight: 600; }
+.doc-meta dd { margin: 0; }
+
+/* 상태 뱃지 */
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.badge.draft   { background: #fff8c5; color: #7d4e00; }
+.badge.review  { background: var(--accent-soft); color: #0a3069; }
+.badge.done    { background: #dafbe1; color: #1a7f37; }
+
+h2 {
+  font-size: 20px;
+  margin-top: 40px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+h3 { font-size: 16px; margin-top: 28px; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+}
+th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: var(--table-head); font-weight: 600; }
+
+code {
+  background: var(--code-bg);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+}
+pre {
+  background: var(--code-bg);
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  overflow-x: auto;
+}
+pre code { background: none; padding: 0; }
+
+blockquote {
+  margin: 16px 0;
+  padding: 8px 16px;
+  border-left: 4px solid var(--accent);
+  background: var(--accent-soft);
+  color: #0a3069;
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+/* 허브(index) 카드 목록 */
+.toc-group { margin-bottom: 32px; }
+.toc-group h2 { border: none; margin-bottom: 12px; }
+.card-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.card {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,.06); text-decoration: none; }
+.card .title { font-weight: 600; color: var(--fg); font-size: 15px; }
+.card .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+footer {
+  margin-top: 60px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+}
