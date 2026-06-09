@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>시선닷컴 기획 문서 허브</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1a1d21; --sub:#6b7280;
+    --line:#e7e9ee; --accent:#1f2937; --accent2:#3b5bdb;
+    --draft:#9aa3af; --review:#d9822b; --confirm:#2f9e44; --published:#3b5bdb; --hold:#e03131;
+    --shadow:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",sans-serif;
+    line-height:1.55;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1040px;margin:0 auto;padding:40px 24px 80px;}
+  header.hero{margin-bottom:28px;}
+  .eyebrow{font-size:12px;letter-spacing:.08em;color:var(--sub);text-transform:uppercase;font-weight:600;}
+  h1{font-size:28px;margin:6px 0 8px;font-weight:750;letter-spacing:-.01em;}
+  .lede{color:var(--sub);font-size:14.5px;margin:0;max-width:680px;}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:24px 0 14px;}
+  .search{flex:1 1 240px;min-width:200px;display:flex;align-items:center;gap:8px;
+    background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;box-shadow:var(--shadow);}
+  .search input{border:0;outline:0;width:100%;font-size:14px;background:transparent;color:var(--ink);}
+  .search svg{flex:none;opacity:.5}
+  .filters{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{border:1px solid var(--line);background:var(--card);color:var(--sub);
+    border-radius:999px;padding:7px 13px;font-size:13px;cursor:pointer;font-weight:600;transition:.12s;}
+  .chip:hover{border-color:#cdd2dc}
+  .chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .meta-row{display:flex;justify-content:space-between;align-items:center;color:var(--sub);font-size:12.5px;margin:6px 2px 10px;}
+  .group{margin-top:26px;}
+  .group h2{font-size:13px;color:var(--sub);font-weight:700;letter-spacing:.04em;
+    text-transform:uppercase;margin:0 0 10px;padding-left:2px;}
+  .list{display:flex;flex-direction:column;gap:9px;}
+  .doc{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);text-decoration:none;color:inherit;transition:.12s;}
+  .doc:hover{border-color:#c7cedd;transform:translateY(-1px);box-shadow:0 4px 14px rgba(16,24,40,.07)}
+  .doc .body{flex:1;min-width:0;}
+  .doc .title{font-size:15px;font-weight:650;margin:0 0 3px;letter-spacing:-.01em;}
+  .doc .desc{font-size:12.5px;color:var(--sub);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .badges{display:flex;gap:6px;align-items:center;flex:none;}
+  .tag{font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:7px;white-space:nowrap;}
+  .tag.type{background:#eef1f6;color:#475467;}
+  .tag.status{color:#fff;}
+  .s-draft{background:var(--draft)} .s-review{background:var(--review)}
+  .s-confirm{background:var(--confirm)} .s-published{background:var(--published)} .s-hold{background:var(--hold)}
+  .date{font-size:12px;color:var(--sub);flex:none;width:88px;text-align:right;font-variant-numeric:tabular-nums;}
+  .empty{text-align:center;color:var(--sub);padding:48px 0;font-size:14px;}
+  footer{margin-top:46px;padding-top:18px;border-top:1px solid var(--line);
+    color:var(--sub);font-size:12.5px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+  .legend span{display:inline-flex;align-items:center;gap:5px;}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  code{background:#eef1f6;padding:1px 6px;border-radius:5px;font-size:12px;}
+  @media(max-width:620px){
+    .doc{flex-wrap:wrap;align-items:flex-start;}
+    .date{width:auto;text-align:left;order:3;}
+    .badges{order:2;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">sisun-docs · 서비스기획</div>
+    <h1>📋 시선닷컴 기획 문서 허브</h1>
+    <p class="lede">기획서(PRD) · 요구사항 정의서 · 정책서 · 개발 리뷰를 한곳에서 인덱스로 확인합니다.
+      유형과 상태값으로 필터링할 수 있고, 신규 일감이 생기면 아래 <code>DOCS</code> 배열에 한 줄씩 추가하면 됩니다.</p>
+  </header>
+
+  <div class="toolbar">
+    <label class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="q" type="search" placeholder="문서 제목·설명·일감번호 검색" autocomplete="off" />
+    </label>
+    <div class="filters" id="typeFilters">
+      <button class="chip active" data-type="all">전체</button>
+      <button class="chip" data-type="기획서">기획서·PRD</button>
+      <button class="chip" data-type="요구사항">요구사항 정의서</button>
+      <button class="chip" data-type="정책서">정책서</button>
+      <button class="chip" data-type="리뷰">개발 리뷰</button>
+    </div>
+  </div>
+
+  <div class="meta-row">
+    <span id="count">—</span>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--draft)"></i>초안</span>
+      <span><i class="dot" style="background:var(--review)"></i>검토중</span>
+      <span><i class="dot" style="background:var(--confirm)"></i>확정</span>
+      <span><i class="dot" style="background:var(--published)"></i>게시</span>
+      <span><i class="dot" style="background:var(--hold)"></i>보류</span>
+    </div>
+  </div>
+
+  <div id="board"></div>
+
+  <footer>
+    <span>sisun-docs · GitHub Pages</span>
+    <span>문서 추가/수정: 레포 <code>index.html</code>의 <code>DOCS</code> 배열 편집</span>
+  </footer>
+</div>
+
+<script>
+/* ───────────────────────────────────────────────────────────
+   문서 목록 — 신규 일감 생기면 여기에 객체 한 줄 추가
+   type   : "기획서" | "요구사항" | "정책서" | "리뷰"
+   status : "초안" | "검토중" | "확정" | "게시" | "보류"
+   url    : 레포 기준 상대경로 (docs/연/월/<슬러그>/파일.html)
+   ─────────────────────────────────────────────────────────── */
+const DOCS = [
+  {
+    title: "PDP 개편 — 요구사항 정의서 (Draft)",
+    desc: "상품상세 페이지 개선 · 일감 #PDP",
+    type: "요구사항", status: "초안",
+    date: "2026-06-02",
+    url: "docs/2026/06/pdp-improvement/requirements.html"
+  },
+  {
+    title: "전시 모듈 개편 — 요구사항 정의서 (REQ-1272)",
+    desc: "메인/카테고리 전시 모듈 개편 · 일감 #1272",
+    type: "요구사항", status: "검토중",
+    date: "2026-06",
+    url: "docs/2026/06/display-module-1272/requirements.html"
+  },
+  {
+    title: "전시 모듈 개편 — 개발팀 리뷰 (REV-1272)",
+    desc: "기획↔개발 리뷰 피드백 · 일감 #1272",
+    type: "리뷰", status: "검토중",
+    date: "2026-06",
+    url: "docs/2026/06/display-module-1272/review.html"
+  },
+  {
+    title: "쿠폰·프로모션 운영 정책서 (POL-2026-001)",
+    desc: "쿠폰 발급·중복·시즌오프 운영 정책",
+    type: "정책서", status: "게시",
+    date: "2026-06",
+    url: "policies/coupon-promotion/index.html"
+  },
+  {
+    title: "시선닷컴 서비스 정책서",
+    desc: "서비스 전반 운영·노출 정책 정의",
+    type: "정책서", status: "초안",
+    date: "2026-06",
+    url: "policies/service-policy/index.html"
+  }
+];
+
+const STATUS_CLASS = {"초안":"s-draft","검토중":"s-review","확정":"s-confirm","게시":"s-published","보류":"s-hold"};
+const TYPE_LABEL = {"기획서":"기획서·PRD","요구사항":"요구사항 정의서","정책서":"정책서","리뷰":"개발 리뷰"};
+const GROUP_ORDER = ["기획서","요구사항","정책서","리뷰"];
+
+let activeType = "all", query = "";
+
+function render(){
+  const board = document.getElementById("board");
+  const q = query.trim().toLowerCase();
+  const filtered = DOCS.filter(d=>{
+    const okType = activeType==="all" || d.type===activeType;
+    const okQ = !q || (d.title+" "+d.desc).toLowerCase().includes(q);
+    return okType && okQ;
+  });
+  document.getElementById("count").textContent = filtered.length + "건";
+  board.innerHTML = "";
+  if(!filtered.length){ board.innerHTML = '<div class="empty">조건에 맞는 문서가 없습니다.</div>'; return; }
+
+  GROUP_ORDER.forEach(type=>{
+    const items = filtered.filter(d=>d.type===type);
+    if(!items.length) return;
+    const g = document.createElement("section");
+    g.className="group";
+    g.innerHTML = `<h2>${TYPE_LABEL[type]} · ${items.length}</h2>`;
+    const list = document.createElement("div"); list.className="list";
+    items.forEach(d=>{
+      const a = document.createElement("a");
+      a.className="doc"; a.href=d.url;
+      a.innerHTML = `
+        <div class="body">
+          <p class="title">${d.title}</p>
+          <p class="desc">${d.desc}</p>
+        </div>
+        <div class="badges">
+          <span class="tag type">${TYPE_LABEL[d.type]}</span>
+          <span class="tag status ${STATUS_CLASS[d.status]}">${d.status}</span>
+        </div>
+        <span class="date">${d.date}</span>`;
+      list.appendChild(a);
+    });
+    g.appendChild(list); board.appendChild(g);
+  });
+}
+
+document.getElementById("typeFilters").addEventListener("click",e=>{
+  const btn = e.target.closest(".chip"); if(!btn) return;
+  document.querySelectorAll("#typeFilters .chip").forEach(c=>c.classList.remove("active"));
+  btn.classList.add("active"); activeType = btn.dataset.type; render();
+});
+document.getElementById("q").addEventListener("input",e=>{ query = e.target.value; render(); });
+render();
+</script>
+</body>
+</html>
