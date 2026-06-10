@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>고객센터 홈 · 검토 의견 + 개선 와이어 제안</title>
+<style>
+  :root{
+    --navy:#1f3864; --blue:#2e75b6; --line:#d9dee6; --ink:#222; --sub:#6b7280;
+    --bg:#f4f6f9; --card:#fff; --accent:#ff5a4d; --soft:#eef3fa; --chip:#eaf0f7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;}
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 24px 80px;}
+  header.top h1{font-size:25px;color:var(--navy);font-weight:800;}
+  header.top p{color:var(--sub);font-size:13px;margin-top:6px;}
+  header.top{border-bottom:2px solid var(--blue);padding-bottom:16px;margin-bottom:8px;}
+
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px;}
+  .legend .tag{font-size:12px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:5px 11px;color:var(--navy);}
+  .legend .tag b{color:var(--accent);}
+
+  h2.sec{font-size:18px;color:var(--navy);margin:38px 0 14px;padding-left:10px;border-left:4px solid var(--blue);}
+  h3.sub{font-size:14px;color:#000;margin:16px 0 6px;font-weight:700;}
+  p.body{font-size:14px;margin-bottom:8px;}
+  ul.dot{margin:4px 0 10px 4px;list-style:none;}
+  ul.dot li{font-size:13.5px;padding:3px 0 3px 16px;position:relative;}
+  ul.dot li:before{content:"•";position:absolute;left:0;color:var(--blue);font-weight:700;}
+  .arrow{color:var(--sub);font-size:13px;margin:2px 0 8px;}
+
+  .conclusion{background:var(--soft);border:1px solid #cdddee;border-radius:12px;padding:18px 20px;margin:14px 0 8px;}
+  .conclusion .tag{display:inline-block;background:#1a8f3c;color:#fff;font-size:12px;font-weight:800;border-radius:6px;padding:3px 12px;margin-bottom:8px;}
+  .conclusion p{font-size:14px;margin-bottom:6px;}
+
+  .keytable{width:100%;border-collapse:collapse;margin-top:6px;font-size:13px;}
+  .keytable th,.keytable td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top;}
+  .keytable th{background:#d5e1f0;color:var(--navy);}
+  .keytable td.n{color:var(--accent);font-weight:800;text-align:center;width:34px;}
+  .keytable td.c{text-align:center;}
+  .stars{color:var(--blue);}
+
+  /* mockups */
+  .grid{display:grid;grid-template-columns:300px 1fr;gap:28px;align-items:start;}
+  @media(max-width:880px){.grid{grid-template-columns:1fr;}}
+  .phone{width:300px;border:10px solid #1c1f24;border-radius:30px;background:#fff;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.16);}
+  .phone .status{height:22px;background:#1c1f24;}
+  .m-head{display:flex;align-items:center;gap:8px;padding:11px 12px;border-bottom:1px solid var(--line);font-size:13px;}
+  .m-head .ic{color:#444;font-size:14px;}
+  .m-head .title{font-weight:700;flex:1;text-align:center;}
+  .m-body{padding:12px;}
+  .pc{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden;box-shadow:0 10px 26px rgba(0,0,0,.08);}
+  .pc .gnb{background:#f0f2f5;color:#666;font-size:12px;text-align:center;padding:10px;border-bottom:1px solid var(--line);}
+  .pc-cols{display:grid;grid-template-columns:190px 1fr;}
+  .lnb{border-right:1px solid var(--line);padding:16px 12px;background:#fafbfc;font-size:13px;}
+  .lnb .lnb-t{font-size:11px;color:var(--sub);margin-bottom:8px;}
+  .lnb a{display:block;padding:8px 8px;border-radius:6px;color:#333;text-decoration:none;}
+  .lnb a.on{background:var(--soft);color:var(--navy);font-weight:700;}
+  .lnb a:hover{background:#f0f4fa;}
+  .pc-main{padding:20px;}
+
+  .phoneblk{background:var(--soft);border-radius:10px;padding:13px;text-align:center;margin-bottom:12px;}
+  .phoneblk .num{font-size:18px;font-weight:800;color:var(--navy);letter-spacing:.5px;}
+  .phoneblk .num small{font-size:11px;font-weight:600;color:#444;}
+  .phoneblk .hours{font-size:11px;color:var(--sub);margin-top:3px;}
+  .stat{display:inline-block;margin-top:7px;font-size:11px;font-weight:700;border-radius:20px;padding:3px 10px;}
+  .stat.on{background:#e7f7ec;color:#1a8f3c;}
+  .stat.off{background:#fdecea;color:#c0392b;}
+
+  .btns2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+  .btns3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
+  .cbtn{border:1px solid var(--line);border-radius:9px;padding:11px 6px;text-align:center;font-size:12px;background:#fff;}
+  .cbtn .bi{font-size:18px;display:block;margin-bottom:5px;}
+  .cbtn.prim{border-color:var(--navy);background:#fff;}
+  .cbtn .role{display:block;font-size:10px;color:var(--sub);margin-top:3px;font-weight:600;}
+  .cbtn b{font-weight:700;}
+
+  .field{display:flex;align-items:center;border:1.5px solid var(--navy);border-radius:24px;padding:8px 14px;font-size:12px;color:var(--sub);margin-bottom:8px;background:#fff;}
+  .field .mag{margin-right:8px;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+  .chips span{font-size:11px;background:var(--chip);color:var(--navy);border-radius:16px;padding:4px 10px;}
+
+  .blkhead{display:flex;justify-content:space-between;align-items:center;margin:4px 0 8px;}
+  .blkhead .bt{font-weight:700;font-size:13px;}
+  .blkhead .more{font-size:11px;color:var(--sub);}
+  .listbox{border:1px solid var(--line);border-radius:9px;padding:6px 12px;margin-bottom:12px;}
+  .listbox .li{font-size:12px;padding:8px 0;border-bottom:1px dashed #e5e8ee;color:#333;display:flex;gap:7px;}
+  .listbox .li:last-child{border-bottom:none;}
+  .listbox .li .rk{color:var(--accent);font-weight:800;}
+
+  .ftr{border-top:1px solid var(--line);margin-top:8px;padding-top:12px;font-size:11px;color:var(--sub);}
+  .ftr .svc{color:var(--navy);font-weight:700;margin-bottom:6px;}
+  .ftr .law{color:#888;margin-top:6px;}
+  .ftr .div{height:1px;background:#eef0f3;margin:8px 0;}
+
+  .tabbar{display:flex;border-top:1px solid var(--line);}
+  .tabbar div{flex:1;text-align:center;font-size:10px;color:#888;padding:8px 0;}
+  .tabbar div.cs{color:var(--navy);font-weight:800;}
+  .tabbar .ti{font-size:15px;display:block;}
+
+  .note{position:relative;background:#fff;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:11px 13px;margin-bottom:12px;font-size:12.5px;}
+  .note b{color:var(--accent);}
+  .note .pill{display:inline-block;background:var(--accent);color:#fff;font-size:10px;font-weight:700;border-radius:5px;padding:1px 7px;margin-right:6px;}
+  .col-notes{display:flex;flex-direction:column;}
+
+  .pcwrap{display:flex;flex-direction:column;gap:8px;}
+  .pc-row{display:flex;gap:8px;}
+  .pcblk{background:var(--soft);border-radius:10px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+  .pcblk .num{font-size:16px;font-weight:800;color:var(--navy);}
+  .pcblk .hours{font-size:11px;color:var(--sub);}
+  .foot{margin-top:40px;font-size:12px;color:var(--sub);text-align:center;}
+  .anchor-nav{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px;}
+  .anchor-nav a{font-size:12px;text-decoration:none;color:var(--blue);border:1px solid #cdddee;border-radius:18px;padding:4px 12px;background:#fff;}
+  .anchor-nav a:hover{background:var(--soft);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>고객센터 홈화면 신설 및 하단푸터 메뉴 개선 — 검토 의견 + 개선 와이어</h1>
+    <p>대상: 1850_고객센터홈 추가 및 하단푸터 메뉴 개선 (Figma) · 검토자: 서비스기획팀 · 2026-06-10</p>
+  </header>
+
+  <div class="anchor-nav">
+    <a href="#c1">1. 검토 결론</a>
+    <a href="#c2">2. 기획안 요약</a>
+    <a href="#c3">3. 잘 잡은 점</a>
+    <a href="#c4">4. 정의 필요 사항</a>
+    <a href="#c5">5. 벤치마킹</a>
+    <a href="#c6">6. 개선 와이어</a>
+  </div>
+
+  <!-- 1. 결론 -->
+  <h2 class="sec" id="c1">1. 검토 결론</h2>
+  <div class="conclusion">
+    <span class="tag">진행 (GO)</span>
+    <p>고객센터 홈 신설 + LNB 통합 + 푸터 정리의 <b>방향성에 동의</b>하며 상세기획 진행을 권고합니다.</p>
+    <p>단, 아래 4장 ‘상세기획 전 정의 필요 사항’ 5개 — 특히 <b>①FAQ 통합검색 · ②홈 진입 동선 · ③상담 채널 역할·비운영시간 정책</b> — 을 와이어프레임 단계에서 반영하는 것을 조건으로 합니다.</p>
+  </div>
+
+  <!-- 2. 요약 -->
+  <h2 class="sec" id="c2">2. 기획안 요약</h2>
+  <h3 class="sub">As-is 문제</h3>
+  <p class="body">별도의 고객센터 홈이 없고 PC에는 LNB 역할의 메뉴도 없어, 고객센터 관련 메뉴가 한 곳에 모이지 못하고 흩어져 있습니다.</p>
+  <ul class="dot">
+    <li>고객서비스 · 공지 · 자주 묻는 질문은 하단 푸터에 개별 존재</li>
+    <li>매장찾기 · 1:1문의는 고객센터로 분류 가능하나 LNB에 없고 푸터에 별도 제공</li>
+    <li>해외배송(SHIPPING & RETURNS)은 단독 메뉴 없이 주문서 내 텍스트 버튼으로만 노출</li>
+  </ul>
+  <p class="arrow">→ 메뉴가 산발적이라 찾기 어렵고, 문의에 필요한 메뉴 간 유기적 이동이 끊깁니다.</p>
+  <h3 class="sub">To-be 방향</h3>
+  <p class="body">고객센터 홈을 신설하여 핵심 기능을 한 화면에 통합하고, PC는 LNB로 메뉴를 묶으며 하단 푸터를 정리합니다.</p>
+  <ul class="dot">
+    <li>상단: SISUN 고객센터 대표번호(1644-0107) + 운영시간</li>
+    <li>핵심 진입: 채팅 상담 / 1:1 문의 바로가기</li>
+    <li>자주 묻는 질문(주요 10개) + 공지사항(최신 10개)</li>
+    <li>주문&배송 안내 · 수선안내 · 매장찾기 바로가기</li>
+    <li>푸터: 매장찾기 ㅣ 고객센터 ㅣ 시선 멤버십 ㅣ 회사소개 / 이용약관 ㅣ 개인정보처리방침</li>
+  </ul>
+
+  <!-- 3. 강점 -->
+  <h2 class="sec" id="c3">3. 잘 잡은 점</h2>
+  <p class="body">산발적으로 흩어진 메뉴를 ‘홈 + LNB’로 묶은 정보구조(IA) 개선이 과제의 핵심을 정확히 짚었습니다. 이는 한섬닷컴·신세계V·SSF의 고객센터 메인과 동일한 정석 구조입니다.</p>
+  <ul class="dot">
+    <li>주문서에만 숨어 있던 해외배송/주문&배송 안내를 고객센터 정식 메뉴로 승격 — As-is 핵심 불편 해소</li>
+    <li>상담 채널(채팅·1:1)을 최상단에 배치하여 문의 진입 경로 단축</li>
+    <li>푸터를 ‘서비스 메뉴’와 ‘회사정보·약관’으로 구분 정리한 시도</li>
+  </ul>
+
+  <!-- 4. 정의 필요 -->
+  <h2 class="sec" id="c4">4. 상세기획 전 정의가 필요한 사항</h2>
+  <p class="body">상세기획에 앞서 아래 5개 항목을 와이어프레임 단계에서 확정할 것을 권고합니다. (우선순위순)</p>
+  <table class="keytable">
+    <tr><th class="n">순위</th><th>항목</th><th>내용 / 권고</th><th style="width:110px">관련 화면</th></tr>
+    <tr><td class="n">1</td><td><b>FAQ 통합검색 부재</b></td><td>현재 FAQ가 ‘주요 10개’ 노출 방식으로 검색바가 없음. 고객센터 1차 목적은 ‘내 질문을 빠르게 찾기’. 자주 묻는 질문 영역 상단에 검색바 + 카테고리 탭 추가 권장.</td><td>FAQ 영역</td></tr>
+    <tr><td class="n">2</td><td><b>홈 진입 동선 정의</b></td><td>As-is 본질 문제가 ‘진입점 분산’인데, To-be에서 모바일 진입점이 미정의(하단 탭바에도 없음). 햄버거·마이페이지·푸터 중 정식 진입점을 명확히 지정해야 개선 효과 발생.</td><td>모바일 GNB/탭바</td></tr>
+    <tr><td class="n">3</td><td><b>상담 채널 역할 구분</b></td><td>채팅·1:1이 동급 노출. 실시간(채팅)/비실시간(1:1) 역할 안내 필요. 운영시간(평일 9:30–17:00)이 짧으므로 비운영 시간 진입 시 채팅 비활성 또는 1:1문의 유도 정책 정의.</td><td>상단 진입 버튼</td></tr>
+    <tr><td class="n">4</td><td><b>콘텐츠 노출 기준</b></td><td>FAQ ‘주요 10개’ 선정 기준(조회수 자동/운영자 수기)과 공지 ‘최신 10개’ 정렬·노출 정책을 정의해야 운영 가능.</td><td>FAQ/공지 영역</td></tr>
+    <tr><td class="n">5</td><td><b>푸터 중복 정리</b></td><td>매장찾기·고객센터·멤버십·회사소개가 홈과 푸터에 중복. ‘고객센터(서비스성)’와 ‘회사정보(약관·사업자)’를 시각적으로 분리하고, 고객센터로 이동한 메뉴를 푸터에 남길지/뺄지 명시.</td><td>공통 푸터</td></tr>
+  </table>
+
+  <!-- 5. 벤치마킹 -->
+  <h2 class="sec" id="c5">5. 벤치마킹 시사점</h2>
+  <p class="body">기획안 벤치마크 프레임이 짚은 한섬닷컴·신세계V·SSF가 가장 정확한 직접 레퍼런스이며, To-be 구조가 이들과 일치합니다.</p>
+  <table class="keytable">
+    <tr><th>사이트</th><th class="c" style="width:90px">관련도</th><th>참고 포인트</th></tr>
+    <tr><td><b>한섬닷컴</b></td><td class="c stars">★★★★</td><td>고객센터 메인에 상담·FAQ·공지 통합 + 메뉴 이동 — To-be와 동일 방향. FAQ 검색 보강 참고.</td></tr>
+    <tr><td><b>신세계V</b></td><td class="c stars">★★★★</td><td>고객센터 메인 내 상담·FAQ·공지 통합 + LNB형 메뉴 이동. 직접 레퍼런스.</td></tr>
+    <tr><td><b>SSF몰</b></td><td class="c stars">★★★★</td><td>메뉴 이동 편의 + FAQ 검색·카테고리 강함. 직접 레퍼런스.</td></tr>
+    <tr><td><b>코오롱몰</b></td><td class="c stars">★★★</td><td>메인은 FAQ+공지만, LNB에 메뉴+고객센터 정보 — 미니멀 변형. ‘홈을 얼마나 채울지’ 비교 참고.</td></tr>
+    <tr><td><b>바바더닷컴</b></td><td class="c stars">★★★★</td><td>구조가 사실상 동일한 경쟁사 — 고객센터 구성 1:1 비교 권장.</td></tr>
+    <tr><td><b>무신사</b></td><td class="c stars">★★★</td><td>FAQ 검색·카테고리 세분화 — 정의 필요 사항 ①번 보강 레퍼런스.</td></tr>
+    <tr><td><b>LF몰</b></td><td class="c stars">★★</td><td>푸터의 통합 멤버십 동선 정리 참고.</td></tr>
+    <tr><td><b>ZARA</b></td><td class="c stars">★★</td><td>모바일 FAQ 토글형 간결화 참고.</td></tr>
+    <tr><td><b>29CM·W컨셉·노스페이스·F&F</b></td><td class="c stars">★</td><td>콘텐츠/단일브랜드 중심으로 이 주제 관련도 낮음.</td></tr>
+  </table>
+
+  <!-- 6. 개선 와이어 -->
+  <h2 class="sec" id="c6">6. 개선 와이어 제안</h2>
+  <p class="body">위 5개 보강 포인트를 기존 To-be에 반영한 모바일·PC 시안입니다. 화면 위 🔴 주석이 변경/신규 제안입니다.</p>
+  <div class="legend">
+    <span class="tag"><b>①</b> FAQ 통합검색 추가</span>
+    <span class="tag"><b>②</b> 홈 진입 동선 명시</span>
+    <span class="tag"><b>③</b> 상담 채널 역할·운영상태 구분</span>
+    <span class="tag"><b>④</b> 콘텐츠 노출 기준 정의</span>
+    <span class="tag"><b>⑤</b> 푸터 서비스/회사정보 분리</span>
+  </div>
+
+  <h3 class="sub">모바일 — 고객센터 홈</h3>
+  <div class="grid">
+    <div class="phone">
+      <div class="status"></div>
+      <div class="m-head">
+        <span class="ic">☰</span><span class="ic">‹</span>
+        <span class="title">고객센터</span>
+        <span class="ic">🔍</span><span class="ic">🛒</span>
+      </div>
+      <div class="m-body">
+        <div class="phoneblk">
+          <div class="num">📞 SISUN 고객센터 <small>1644-0107</small></div>
+          <div class="hours">평일 9:30–17:00 ㅣ 점심 12:30–14:00 (주말·공휴일 휴무)</div>
+          <span class="stat on">● 지금 상담 가능</span>
+        </div>
+        <div class="btns2">
+          <div class="cbtn prim"><span class="bi">💬</span><b>채팅 상담</b><span class="role">실시간·운영시간 내</span></div>
+          <div class="cbtn"><span class="bi">✉️</span><b>1:1 문의</b><span class="role">24시간 접수</span></div>
+        </div>
+        <div class="blkhead"><span class="bt">자주 묻는 질문</span><span class="more">전체보기 ›</span></div>
+        <div class="field"><span class="mag">🔍</span>궁금한 점을 검색하세요</div>
+        <div class="chips"><span>주문/결제</span><span>배송</span><span>교환/반품</span><span>회원</span><span>해외배송</span></div>
+        <div class="listbox">
+          <div class="li"><span class="rk">TOP</span>주문 취소는 어떻게 하나요?</div>
+          <div class="li"><span class="rk">TOP</span>교환·반품 배송비 안내</div>
+          <div class="li"><span class="rk">TOP</span>해외배송 가능 국가 / 기간</div>
+          <div class="li" style="color:#aab">··· 주요 10개 (조회수 기준 자동 정렬)</div>
+        </div>
+        <div class="btns3">
+          <div class="cbtn"><span class="bi">📦</span>주문&배송<br>안내</div>
+          <div class="cbtn"><span class="bi">🧵</span>수선<br>안내</div>
+          <div class="cbtn"><span class="bi">📍</span>매장<br>찾기</div>
+        </div>
+        <div class="blkhead"><span class="bt">공지사항</span><span class="more">전체보기 ›</span></div>
+        <div class="listbox">
+          <div class="li">[안내] 여름 휴무 배송 일정 안내</div>
+          <div class="li">[점검] 정기 시스템 점검 안내</div>
+          <div class="li" style="color:#aab">··· 최신 10개 (등록일 기준)</div>
+        </div>
+        <div class="ftr">
+          <div class="svc">매장찾기 ㅣ 고객센터 ㅣ 시선 멤버십 ㅣ 회사소개</div>
+          고객센터 1644-0107 · 평일 09:30~17:00
+          <div class="div"></div>
+          <div class="law">이용약관 ㅣ <b style="color:#555">개인정보처리방침</b> ㅣ 사업자정보확인</div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div><span class="ti">≡</span>동행메뉴</div>
+        <div><span class="ti">🕘</span>최근상품</div>
+        <div><span class="ti">🏠</span>홈</div>
+        <div><span class="ti">♡</span>위시</div>
+        <div class="cs"><span class="ti">👤</span>마이/고객센터</div>
+      </div>
+    </div>
+
+    <div class="col-notes">
+      <div class="note"><span class="pill">②</span><b>홈 진입 동선 명시.</b> 모바일은 <b>햄버거 메뉴 최상단 ‘고객센터’</b> + <b>마이페이지 상단 배너</b> 두 곳을 정식 진입점으로 고정 노출 권장. (하단 탭바 ‘마이’에 보조 라벨 병기)</div>
+      <div class="note"><span class="pill">③</span><b>상담 채널 역할 구분.</b> 채팅=실시간(운영시간 내), 1:1=24시간 접수로 라벨 명시. 대표번호 블록에 <b>운영상태 배지</b>(● 상담 가능 / 상담 마감)를 실시간 노출, 마감 시 채팅 비활성 + 1:1문의로 유도.</div>
+      <div class="note"><span class="pill">①</span><b>FAQ 통합검색.</b> ‘주요 10개’ 위에 <b>검색바 + 카테고리 칩</b> 추가. 고객센터 1차 목적인 ‘내 질문 빠르게 찾기’ 충족 (SSF·무신사·한섬 공통 패턴).</div>
+      <div class="note"><span class="pill">④</span><b>콘텐츠 노출 기준.</b> FAQ ‘주요 10개’=조회수 자동(+운영자 고정 슬롯), 공지 ‘최신 10개’=등록일 기준. 운영 규칙을 정책으로 확정.</div>
+      <div class="note"><span class="pill">⑤</span><b>푸터 분리.</b> 윗줄=서비스 메뉴, 구분선 아래=회사정보·약관. 매장찾기는 LNB로 이동했으므로 푸터에서는 회사 공통 메뉴로만 유지(중복 의도 명시).</div>
+    </div>
+  </div>
+
+  <h3 class="sub" style="margin-top:30px">PC — 고객센터 홈</h3>
+  <div class="pc">
+    <div class="gnb">GNB (전체 상단 글로벌 내비게이션)</div>
+    <div class="pc-cols">
+      <div class="lnb">
+        <div class="lnb-t">LNB</div>
+        <a class="on">고객센터 홈</a>
+        <a>1:1 문의</a>
+        <a>자주 묻는 질문</a>
+        <a>주문&배송 안내</a>
+        <a>수선안내</a>
+        <a>매장찾기</a>
+        <a>공지사항</a>
+      </div>
+      <div class="pc-main">
+        <div class="pcwrap">
+          <div class="pcblk">
+            <div>
+              <div class="num">📞 SISUN 고객센터 1644-0107 &nbsp;<span class="stat on">● 지금 상담 가능</span></div>
+              <div class="hours">평일 9:30–17:00 ㅣ 점심 12:30–14:00 (주말·공휴일 휴무)</div>
+            </div>
+            <div class="pc-row" style="min-width:300px">
+              <div class="cbtn prim" style="min-width:140px"><b>💬 채팅 상담 ▶</b><span class="role">실시간·운영시간 내</span></div>
+              <div class="cbtn" style="min-width:140px"><b>✉️ 1:1 문의 ▶</b><span class="role">24시간 접수</span></div>
+            </div>
+          </div>
+          <div class="blkhead"><span class="bt">자주 묻는 질문</span><span class="more">전체보기 ›</span></div>
+          <div class="field"><span class="mag">🔍</span>궁금한 점을 검색하세요 — 키워드로 빠르게 찾기</div>
+          <div class="chips"><span>주문/결제</span><span>배송</span><span>교환/반품</span><span>회원/등급</span><span>해외배송</span><span>수선</span></div>
+          <div class="listbox">
+            <div class="li"><span class="rk">TOP</span>주문 취소는 어떻게 하나요?</div>
+            <div class="li"><span class="rk">TOP</span>교환·반품 배송비 안내</div>
+            <div class="li"><span class="rk">TOP</span>해외배송 가능 국가 / 기간</div>
+            <div class="li" style="color:#aab">··· 주요 콘텐츠 10개 (조회수 기준 자동 + 운영자 고정 슬롯)</div>
+          </div>
+          <div class="blkhead"><span class="bt">공지사항</span><span class="more">전체보기 ›</span></div>
+          <div class="listbox">
+            <div class="li">[안내] 여름 휴무 배송 일정 안내</div>
+            <div class="li">[점검] 정기 시스템 점검 안내</div>
+            <div class="li" style="color:#aab">··· 최신 콘텐츠 10개 (등록일 기준)</div>
+          </div>
+        </div>
+        <div class="ftr" style="margin-top:18px">
+          <div class="svc">매장찾기 ㅣ 고객센터 ㅣ 시선 멤버십 ㅣ 회사소개</div>
+          고객센터 1644-0107 · 평일 09:30~17:00 ㅣ 점심 12:30~14:00 (주말·공휴일 휴무)
+          <div class="div"></div>
+          <div class="law">이용약관 ㅣ <b style="color:#555">개인정보처리방침</b> ㅣ 사업자 정보확인 &nbsp;·&nbsp; (주)시선인터내셔널 · 사업자등록번호 214-81-98102</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub" style="margin-top:30px">보강 포인트 요약</h3>
+  <table class="keytable">
+    <tr><th class="n">#</th><th>항목</th><th>기존 To-be</th><th>제안 (변경점)</th></tr>
+    <tr><td class="n">①</td><td>FAQ 통합검색</td><td>‘주요 10개’ 목록만 노출</td><td>검색바 + 카테고리 칩 추가 → 질문 직접 탐색</td></tr>
+    <tr><td class="n">②</td><td>홈 진입 동선</td><td>홈 진입점 미정의</td><td>햄버거 최상단 + 마이페이지 배너를 정식 진입점으로 고정</td></tr>
+    <tr><td class="n">③</td><td>상담 채널 역할</td><td>채팅·1:1 동급 노출</td><td>역할 라벨(실시간/24h) + 운영상태 배지 + 마감 시 1:1 유도</td></tr>
+    <tr><td class="n">④</td><td>콘텐츠 노출 기준</td><td>‘10개’ 기준 불명확</td><td>FAQ=조회수(+고정 슬롯), 공지=등록일 — 정책 명시</td></tr>
+    <tr><td class="n">⑤</td><td>푸터 정리</td><td>서비스·회사정보 혼재</td><td>서비스 메뉴 / 회사정보·약관 구분선 분리, 중복 의도 명시</td></tr>
+  </table>
+
+  <p class="foot">※ 본 문서는 정책·동선 검토용입니다. 와이어 디자인(컬러·타이포·아이콘)은 확정안이 아니며 상세기획 단계에서 가이드를 따릅니다. · 서비스기획팀 · 2026-06-10</p>
+</div>
+</body>
+</html>
