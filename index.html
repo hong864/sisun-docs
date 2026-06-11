@@ -62,7 +62,7 @@
   .empty{display:none;text-align:center;color:var(--sub);font-size:13px;padding:40px}
   footer{margin-top:30px;color:var(--sub);font-size:12px;text-align:center}
   /* Wireframe·대시보드 임베드 패널 공통 */
-  #wfPanel,#dashPanel{display:none}
+  #wfPanel,#dashPanel,#benchPanel{display:none}
   .wf-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;
     flex-wrap:wrap;margin:6px 0 14px}
   .wf-bar .wf-meta{font-size:13px;color:var(--sub)}
@@ -123,7 +123,7 @@
 <div class="wrap">
   <header>
     <h1>시선닷컴 기획 문서 허브</h1>
-    <div class="sub">Homi_개인일감 DB · 갱신일 2026-06-11 · 총 <span id="total">0</span>건 · <b>#ID</b>=Homi DB · <b>Sisun No</b>=Sisun-Tasks(클릭해 입력)</div>
+    <div class="sub">Homi_개인일감 DB · 갱신일 2026-06-11 · 총 <span id="total">0</span>건 · <b>#ID</b>=Homi DB · <b>Sisun No</b>=Sisun-Tasks(클릭해 입력) · 구분별 탭에 <b>벤치마킹</b>(KPI 대시보드·경쟁사 벤치마킹) 추가</div>
     </header>
 
   <div class="daily-wrap">
@@ -342,6 +342,32 @@
     <div class="wf-note">※ 일일 점검(매일 08:00)이 같은 파일명으로 덮어쓰므로 항상 최신본이 표시됩니다.</div>
   </div>
 
+  <!-- 벤치마킹 · 주간 KPI 대시보드 패널 (3가지 결과) -->
+  <div id="benchPanel">
+    <div class="wf-bar">
+      <div class="wf-meta"><b>시선닷컴 주간 KPI 대시보드 · 경쟁사 벤치마킹</b> · 평가 가중(개인 성과 50 / 협업 20 / 비즈니스 30) · 출처·기대효과 반영</div>
+      <a class="wf-open" href="./kpi-benchmark.html" target="_blank" rel="noopener">↗ 새 탭으로 열기</a>
+    </div>
+    <div class="frame-box">
+      <iframe id="benchFrame" src="./kpi-benchmark.html"
+        loading="lazy" allow="fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <div class="wf-fallback" id="benchFallback">
+        <h3>벤치마킹 리포트가 임베드되지 않았어요</h3>
+        <p>같은 폴더에 “kpi-benchmark.html” 파일이 있어야 합니다. 아래 버튼으로 새 탭에서 확인하세요.</p>
+        <a class="wf-open" href="./kpi-benchmark.html" target="_blank" rel="noopener">↗ 리포트 새 탭으로 열기</a>
+      </div>
+    </div>
+    <div class="wf-bar" style="margin-top:12px">
+      <div class="wf-meta">연결 산출물 <b>3종</b></div>
+      <span style="display:flex;gap:8px;flex-wrap:wrap">
+        <a class="wf-open" href="./kpi-benchmark.html" target="_blank" rel="noopener">① 벤치마킹 리포트(HTML)</a>
+        <a class="wf-open" href="./weekly-kpi-dashboard.xlsx" target="_blank" rel="noopener">② 주간 KPI Excel(.xlsx)</a>
+        <a class="wf-open" href="./kpi-dashboard.jsx" target="_blank" rel="noopener">③ 웹 대시보드 소스(.jsx)</a>
+      </span>
+    </div>
+    <div class="wf-note">※ 임베드 화면은 ① 벤치마킹 리포트(HTML)입니다. ② Excel · ③ 웹 대시보드 소스는 위 버튼으로 열거나 내려받으세요. 임베드되려면 4개 파일(index.html 포함)을 같은 폴더에 함께 보관해야 합니다.</div>
+  </div>
+
   <footer id="legend">상태 배지 — 회색: 예정·시작전 / 노랑: 일감접수 / 파랑: 진행중 / 초록: 완료</footer>
 </div>
 
@@ -387,9 +413,10 @@ function saveSisun(id, val){
 // 우선순위 값 부여 (긴급 옵션 외에는 일반)
 DATA.forEach(d=>{ d.priority = d.urgent ? "긴급" : "일반"; });
 
-// Wireframe / 생산성 점검 칩 카운트
+// Wireframe / 생산성 점검 / 벤치마킹 칩 카운트
 const WF_COUNT = 1;
 const DASH_COUNT = 1;
+const BENCH_COUNT = 3; // 벤치마킹 리포트 + 주간 KPI Excel + 웹 대시보드 소스
 
 const GROUPS = {
   cat:    { key:"cat",      order:["기획서/PRD","요구사항 정의서","정책서","Wireframe","생산성 점검","개발 리뷰","벤치마킹","템플릿","구분 없음"] },
@@ -474,6 +501,7 @@ function buildChips(){
     const active = c===activeCat ? " active":"";
     if(c==="Wireframe") return `<button class="chip${active}" data-cat="Wireframe">Wireframe<span class="n">${WF_COUNT}</span></button>`;
     if(c==="생산성 점검") return `<button class="chip${active}" data-cat="생산성 점검">생산성 점검<span class="n">${DASH_COUNT}</span></button>`;
+    if(c==="벤치마킹") return `<button class="chip${active}" data-cat="벤치마킹">벤치마킹<span class="n">${BENCH_COUNT}</span></button>`;
     const n = c==="전체"?DATA.length:(counts[c]||0);
     return `<button class="chip${active}" data-cat="${c}">${c}<span class="n">${n}</span></button>`;
   }).join("");
@@ -484,19 +512,20 @@ function buildChips(){
       ch.classList.add("active");
       if(activeCat==="Wireframe"){ showEmbed("wfPanel"); }
       else if(activeCat==="생산성 점검"){ showEmbed("dashPanel"); }
+      else if(activeCat==="벤치마킹"){ showEmbed("benchPanel"); }
       else { showEmbed(null); render(); }
     };
   });
 }
 
-// 칩 선택 시 일감 목록 대신 임베드 패널(Wireframe/대시보드) 노출
+// 칩 선택 시 일감 목록 대신 임베드 패널(Wireframe/대시보드/벤치마킹) 노출
 function showEmbed(panelId){
   const on = !!panelId;
   document.getElementById("q").style.display      = on ? "none" : "";
   document.getElementById("list").style.display   = on ? "none" : "";
   document.getElementById("empty").style.display  = on ? "none" : "";
   document.getElementById("legend").style.display = on ? "none" : "";
-  ["wfPanel","dashPanel"].forEach(p=>{
+  ["wfPanel","dashPanel","benchPanel"].forEach(p=>{
     document.getElementById(p).style.display = (p===panelId) ? "block" : "none";
   });
 }
@@ -540,7 +569,7 @@ function initWfMeta(){
 }
 initWfMeta();
 
-// iframe 임베드 차단 감지 (Wireframe / 대시보드 공통)
+// iframe 임베드 차단 감지 (Wireframe / 대시보드 / 벤치마킹 공통)
 function watchFrame(frameId, fbId){
   const f = document.getElementById(frameId);
   const fb = document.getElementById(fbId);
@@ -550,6 +579,7 @@ function watchFrame(frameId, fbId){
 }
 watchFrame("wfFrame","wfFallback");
 watchFrame("dashFrame","dashFallback");
+watchFrame("benchFrame","benchFallback");
 
 document.getElementById("total").textContent = DATA.length;
 document.getElementById("q").addEventListener("input", e=>{query=e.target.value;render();});
