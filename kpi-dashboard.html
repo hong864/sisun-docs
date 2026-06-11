@@ -4,19 +4,44 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>시선닷컴 주간 KPI 대시보드</title>
+<script>
+  window.addEventListener("error", function(e){
+    var r = document.getElementById("root");
+    if (r && r.querySelector(".boot")) {
+      r.innerHTML = '<div style="font-family:Arial,\'맑은 고딕\',sans-serif;padding:40px;color:#b91c1c;line-height:1.6">'
+        + '로드 오류: ' + (e && e.message ? e.message : e)
+        + '<br><span style="color:#64748b">React·차트·Tailwind CDN 로드 실패(사내망 차단 가능)일 수 있습니다. '
+        + '네트워크에서 unpkg.com·jsdelivr.net·cdn.tailwindcss.com 허용이 필요하거나, 오프라인(라이브러리 내장) 버전이 필요합니다.</span></div>';
+    }
+  });
+</script>
 <script src="https://cdn.tailwindcss.com"></script>
-<script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
-<script crossorigin src="https://unpkg.com/recharts@2.12.7/umd/Recharts.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+<script crossorigin src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://cdn.jsdelivr.net/npm/prop-types@15.8.1/prop-types.min.js"></script>
+<script crossorigin src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js"></script>
 <style>body{background:#fff;margin:0}#root{min-height:100vh}.boot{font-family:Arial,"맑은 고딕",sans-serif;color:#64748b;padding:40px;text-align:center}</style>
 </head>
 <body>
-<div id="root"><div class="boot">대시보드를 불러오는 중… (자바스크립트 필요)</div></div>
+<div id="root"><div class="boot">대시보드를 불러오는 중… (자바스크립트·CDN 로드)</div></div>
+<script>
+  // 핵심 라이브러리 로드 확인 (Babel 실행 전 빠른 진단)
+  window.addEventListener("load", function(){
+    setTimeout(function(){
+      var r = document.getElementById("root");
+      if (!(r && r.querySelector(".boot"))) return; // 이미 렌더됨
+      if (typeof React === "undefined" || typeof ReactDOM === "undefined" || typeof Babel === "undefined") {
+        r.innerHTML = '<div style="font-family:Arial,sans-serif;padding:40px;color:#b91c1c">CDN 로드 실패: React/ReactDOM/Babel을 불러오지 못했습니다.<br><span style="color:#64748b">사내망에서 jsdelivr.net 차단 가능. 오프라인 버전이 필요하면 알려주세요.</span></div>';
+      }
+    }, 6000);
+  });
+</script>
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useMemo } = React;
-const { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell } = Recharts;
+const __RC = (typeof Recharts!=="undefined" && Recharts) ? Recharts : {};
+const __N = function(){ return null; };
+const { BarChart=__N, Bar=__N, LineChart=__N, Line=__N, XAxis=__N, YAxis=__N, CartesianGrid=__N, Tooltip=__N, ResponsiveContainer=__N, ReferenceLine=__N, Cell=__N } = __RC;
 
 // ===== 디자인 토큰 =====
 const NAVY = "#1F3864";
