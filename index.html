@@ -61,8 +61,8 @@
   .urg{font-size:10.5px;font-weight:700;color:#b91c1c;background:#fee2e2;padding:2px 6px;border-radius:5px}
   .empty{display:none;text-align:center;color:var(--sub);font-size:13px;padding:40px}
   footer{margin-top:30px;color:var(--sub);font-size:12px;text-align:center}
-  /* Wireframe 패널 */
-  #wfPanel{display:none}
+  /* Wireframe·대시보드 임베드 패널 공통 */
+  #wfPanel,#dashPanel{display:none}
   .wf-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;
     flex-wrap:wrap;margin:6px 0 14px}
   .wf-bar .wf-meta{font-size:13px;color:var(--sub)}
@@ -102,7 +102,7 @@
 <div class="wrap">
   <header>
     <h1>시선닷컴 기획 문서 허브</h1>
-    <div class="sub">Homi_개인일감 DB · 생성일 2026-06-10 · 총 <span id="total">0</span>건 · <b>#ID</b>=Homi DB · <b>Sisun No</b>=Sisun-Tasks(클릭해 입력)</div>
+    <div class="sub">Homi_개인일감 DB · 갱신일 2026-06-11 · 총 <span id="total">0</span>건 · <b>#ID</b>=Homi DB · <b>Sisun No</b>=Sisun-Tasks(클릭해 입력)</div>
   </header>
 
   <div class="controls">
@@ -161,6 +161,24 @@
     <div class="wf-note">※ 화면이 비어 보이면 위 “새 탭으로 열기”를 사용하세요.</div>
   </div>
 
+  <!-- 생산성 점검 대시보드 패널 -->
+  <div id="dashPanel">
+    <div class="wf-bar">
+      <div class="wf-meta"><b>시선닷컴 생산성 점검 대시보드</b> · 매일 08:00 자동 갱신 (KPI · 구성원 가동률)</div>
+      <a class="wf-open" href="./시선닷컴_생산성점검_대시보드.html" target="_blank" rel="noopener">↗ 새 탭으로 열기</a>
+    </div>
+    <div class="frame-box">
+      <iframe id="dashFrame" src="./시선닷컴_생산성점검_대시보드.html"
+        loading="lazy" allow="fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <div class="wf-fallback" id="dashFallback">
+        <h3>대시보드가 임베드되지 않았어요</h3>
+        <p>같은 폴더에 “시선닷컴_생산성점검_대시보드.html” 파일이 있어야 합니다. 아래 버튼으로 새 탭에서 확인하세요.</p>
+        <a class="wf-open" href="./시선닷컴_생산성점검_대시보드.html" target="_blank" rel="noopener">↗ 대시보드 새 탭으로 열기</a>
+      </div>
+    </div>
+    <div class="wf-note">※ 일일 점검(매일 08:00)이 같은 파일명으로 덮어쓰므로 항상 최신본이 표시됩니다.</div>
+  </div>
+
   <footer id="legend">상태 배지 — 회색: 예정·시작전 / 노랑: 일감접수 / 파랑: 진행중 / 초록: 완료</footer>
 </div>
 
@@ -180,13 +198,23 @@ const DATA = [
   {id:7,  title:"[프로모션]모듈 개선", cat:"구분 없음", status:"시작전", date:"", urgent:false, sisunNo:"", url:"https://app.notion.com/p/374f6986169c801b9d67d4f63da36a9c"},
   {id:6,  title:"[클레임]모듈 개선", cat:"구분 없음", status:"시작전", date:"", urgent:false, sisunNo:"", url:"https://app.notion.com/p/374f6986169c80fc8b07fa1a038f4a52"},
   {id:12, title:"PDP 개선, 테스트 케이스", cat:"구분 없음", status:"일감접수", date:"", urgent:false, sisunNo:"", url:"https://app.notion.com/p/379f6986169c807ab552d76d5eba0687"},
+  // ▼ 2026-06-11 갱신 — 신규 수집 문서
+  {id:18, title:"1차 PRD", cat:"구분 없음", status:"기획 진행중", date:"", urgent:false, sisunNo:"", url:"https://app.notion.com/p/37bf6986169c80c4a865f82df6c0a804"},
+  {id:19, title:"고객센터 홈화면 신설 및 하단푸터 메뉴 개선 — 기획안 검토 의견", cat:"기획서/PRD", status:"일감접수", date:"2026-06-10", urgent:false, sisunNo:"", url:"https://app.notion.com/p/37bf6986169c81dbbf21e21c49e5ce4a"},
+  {id:20, title:"T_전시 모듈 개편", cat:"요구사항 정의서", status:"기획 진행중", date:"", urgent:false, sisunNo:"", url:"https://app.notion.com/p/37bf6986169c80d7a94aecc68526e797"},
+  {id:21, title:"품번 변경 시 리뷰 연동 문제 해결의 건", cat:"구분 없음", status:"시작전", date:"", urgent:false, sisunNo:"", url:"https://app.notion.com/p/37bf6986169c80f7b972fa20349118c5"},
+  {id:22, title:"[템플릿] 기획서·PRD 표준 양식 (복제용)", cat:"템플릿", status:"시작전", date:"", urgent:false, sisunNo:"", url:"https://app.notion.com/p/37bf6986169c816dbedbd049af2b7d8a"},
+  {id:23, title:"상품상세(PDP) 2차 개선사항의 건", cat:"구분 없음", status:"시작전", date:"", urgent:false, sisunNo:"", url:"https://app.notion.com/p/37bf6986169c80e699bdfa89f0938c1a"},
+  {id:24, title:"기획전 상세페이지 퍼블작업화", cat:"구분 없음", status:"기획 진행중", date:"2026-06-19", urgent:false, sisunNo:"", url:"https://app.notion.com/p/37bf6986169c800dbef4c46f7f3a3f5b"},
+  {id:25, title:"어드민 상품주문등록/조회 엑셀 다운로드 오류 확인 요청", cat:"구분 없음", status:"일감접수", date:"", urgent:false, sisunNo:"", url:"https://app.notion.com/p/37bf6986169c801b8dd2f62ec54cfb48"},
+  {id:26, title:"[미샤/이비엠] 시즌오프 진행 시 직원쿠폰 사용가능 설정", cat:"구분 없음", status:"시작전", date:"", urgent:false, sisunNo:"", url:"https://app.notion.com/p/37bf6986169c807983dfe7856193fe29"},
 ];
 
 // 화면에서 입력한 Sisun No 저장/복원 (로컬 파일 기준)
 const SKEY = "sisunNoMap";
 let sisunMap = {};
 try { sisunMap = JSON.parse(localStorage.getItem(SKEY) || "{}"); } catch(e){ sisunMap = {}; }
-DATA.forEach(d=>{ if(sisunMap[d.id]!==undefined) d.sisunNo = sisunMap[d.id]; });
+DATA.forEach(d=>{ if(sisunMap[d.id]!==undefined && sisunMap[d.id]!=="") d.sisunNo = sisunMap[d.id]; });
 function saveSisun(id, val){
   sisunMap[id] = val;
   try { localStorage.setItem(SKEY, JSON.stringify(sisunMap)); } catch(e){}
@@ -196,11 +224,12 @@ function saveSisun(id, val){
 // 우선순위 값 부여 (긴급 옵션 외에는 일반)
 DATA.forEach(d=>{ d.priority = d.urgent ? "긴급" : "일반"; });
 
-// Wireframe 칩 카운트 (와이어프레임 산출물 수)
+// Wireframe / 생산성 점검 칩 카운트
 const WF_COUNT = 1;
+const DASH_COUNT = 1;
 
 const GROUPS = {
-  cat:    { key:"cat",      order:["기획서/PRD","요구사항 정의서","정책서","Wireframe","개발 리뷰","벤치마킹","구분 없음"] },
+  cat:    { key:"cat",      order:["기획서/PRD","요구사항 정의서","정책서","Wireframe","생산성 점검","개발 리뷰","벤치마킹","템플릿","구분 없음"] },
   pri:    { key:"priority", order:["긴급","일반"] },
   status: { key:"status",   order:["예정","시작전","일감접수","기획 진행중","디자인 진행중","퍼블리싱 진행중","개발 진행중","기획 완료","디자인 완료","퍼블리싱 완료","개발 완료","완료"] },
 };
@@ -277,10 +306,11 @@ function buildChips(){
   // 구분별 보기에서는 정의된 모든 구분(정책서·벤치마킹 등 0건 포함)을 항상 노출
   const base = mode==="cat" ? g.order : g.order.filter(v=>counts[v]);
   const ordered = [...base, ...present.filter(v=>!g.order.includes(v))];
-  const cats = ["전체",...ordered];
+  const cats = ["전체",...new Set(ordered)];
   chips.innerHTML = cats.map(c=>{
     const active = c===activeCat ? " active":"";
     if(c==="Wireframe") return `<button class="chip${active}" data-cat="Wireframe">Wireframe<span class="n">${WF_COUNT}</span></button>`;
+    if(c==="생산성 점검") return `<button class="chip${active}" data-cat="생산성 점검">생산성 점검<span class="n">${DASH_COUNT}</span></button>`;
     const n = c==="전체"?DATA.length:(counts[c]||0);
     return `<button class="chip${active}" data-cat="${c}">${c}<span class="n">${n}</span></button>`;
   }).join("");
@@ -289,19 +319,23 @@ function buildChips(){
       activeCat = ch.dataset.cat;
       chips.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
       ch.classList.add("active");
-      if(activeCat==="Wireframe"){ showWireframe(true); }
-      else { showWireframe(false); render(); }
+      if(activeCat==="Wireframe"){ showEmbed("wfPanel"); }
+      else if(activeCat==="생산성 점검"){ showEmbed("dashPanel"); }
+      else { showEmbed(null); render(); }
     };
   });
 }
 
-// Wireframe 칩 선택 시 일감 목록 대신 Figma 임베드 패널 노출
-function showWireframe(on){
+// 칩 선택 시 일감 목록 대신 임베드 패널(Wireframe/대시보드) 노출
+function showEmbed(panelId){
+  const on = !!panelId;
   document.getElementById("q").style.display      = on ? "none" : "";
   document.getElementById("list").style.display   = on ? "none" : "";
   document.getElementById("empty").style.display  = on ? "none" : "";
   document.getElementById("legend").style.display = on ? "none" : "";
-  document.getElementById("wfPanel").style.display = on ? "block" : "none";
+  ["wfPanel","dashPanel"].forEach(p=>{
+    document.getElementById(p).style.display = (p===panelId) ? "block" : "none";
+  });
 }
 
 function buildTabs(){
@@ -311,7 +345,7 @@ function buildTabs(){
       activeCat = "전체";
       document.querySelectorAll("#tabs .tab").forEach(x=>x.classList.remove("active"));
       t.classList.add("active");
-      showWireframe(false);
+      showEmbed(null);
       buildChips();
       render();
     };
@@ -343,14 +377,16 @@ function initWfMeta(){
 }
 initWfMeta();
 
-// iframe 임베드 차단 감지
-(function(){
-  const f = document.getElementById("wfFrame");
-  const fb = document.getElementById("wfFallback");
+// iframe 임베드 차단 감지 (Wireframe / 대시보드 공통)
+function watchFrame(frameId, fbId){
+  const f = document.getElementById(frameId);
+  const fb = document.getElementById(fbId);
   let loaded = false;
   f.addEventListener("load", ()=>{ loaded = true; });
   setTimeout(()=>{ if(!loaded) fb.classList.add("show"); }, 5000);
-})();
+}
+watchFrame("wfFrame","wfFallback");
+watchFrame("dashFrame","dashFallback");
 
 document.getElementById("total").textContent = DATA.length;
 document.getElementById("q").addEventListener("input", e=>{query=e.target.value;render();});

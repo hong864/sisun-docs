@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시선닷컴 생산성 점검 대시보드</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--navy:#1F3864;--blue:#2E75B6;--good:#2E9E5B;--warn:#C0392B;--amber:#E08A1E;--gray:#6b7280;--bg:#f5f7fa;}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif;}
+body{background:var(--bg);color:#1f2937;padding:24px;}
+.wrap{max-width:1180px;margin:0 auto;}
+header{background:var(--navy);color:#fff;border-radius:12px;padding:22px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+header h1{font-size:21px;font-weight:700;}
+header .date{font-size:13px;opacity:.85;}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:16px 0;}
+.card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.07);}
+.card .lbl{font-size:12px;color:var(--gray);margin-bottom:6px;}
+.card .val{font-size:26px;font-weight:700;color:var(--navy);}
+.card .sub{font-size:11px;color:var(--gray);margin-top:4px;}
+section{background:#fff;border-radius:12px;padding:22px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.07);}
+section h2{font-size:16px;color:var(--navy);border-left:4px solid var(--blue);padding-left:10px;margin-bottom:14px;}
+.grid2{display:grid;grid-template-columns:1fr 1.4fr;gap:20px;align-items:start;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:#eef2f7;color:var(--navy);padding:8px 10px;text-align:left;font-weight:600;}
+td{padding:8px 10px;border-bottom:1px solid #f0f2f5;vertical-align:top;}
+.badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap;}
+.b-blue{background:#e3edf7;color:var(--blue);}.b-green{background:#e3f3e9;color:var(--good);}
+.b-gray{background:#eceff3;color:var(--gray);}.b-amber{background:#faf0dd;color:var(--amber);}.b-red{background:#f8e5e2;color:var(--warn);}
+.light{font-size:18px;}
+.note{font-size:12px;color:var(--gray);margin-top:8px;}
+.chartbox{position:relative;height:240px;}
+ul.plain{list-style:none;font-size:13px;}
+ul.plain li{padding:7px 0;border-bottom:1px solid #f0f2f5;line-height:1.5;}
+.risk{border-left:3px solid var(--warn);background:#fdf6f5;padding:10px 12px;border-radius:0 8px 8px 0;margin-bottom:8px;font-size:13px;line-height:1.5;}
+.kpi-pending{color:var(--gray);font-style:italic;}
+@media(max-width:860px){.cards{grid-template-columns:repeat(2,1fr);}.grid2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>시선닷컴 서비스 기획팀 — 생산성 점검 대시보드 (일일)</h1>
+  <div class="date">기준 일시 2026.06.11 (목) · 대상 기간 06.08~06.12 · 관점: 업무 성과 KPI · 구성원 가동률</div>
+</header>
+
+<div class="cards">
+  <div class="card"><div class="lbl">금주 진행 과제</div><div class="val">4건</div><div class="sub">UI/UX 리뉴얼 등 중장기 중심</div></div>
+  <div class="card"><div class="lbl">신규 접수</div><div class="val">2건</div><div class="sub">금주 신규 흡수</div></div>
+  <div class="card"><div class="lbl">차주 계획</div><div class="val">6건</div><div class="sub">PDP 2차 개선 등 착수 예정</div></div>
+  <div class="card"><div class="lbl">블로커·의사결정</div><div class="val" style="color:var(--amber)">3건</div><div class="sub">전건 외부 의존</div></div>
+  <div class="card"><div class="lbl">지연 리스크</div><div class="val" style="color:var(--warn)">1건</div><div class="sub">UI/UX M1(7/3) 슬롯 미확정</div></div>
+</div>
+
+<section>
+  <h2>① 팀 일감 진척 (주간보고 2026.06.12 기준)</h2>
+  <div class="grid2">
+    <div class="chartbox"><canvas id="stageChart"></canvas></div>
+    <table>
+      <tr><th>#</th><th>과제</th><th>금주 진행</th><th>상태</th></tr>
+      <tr><td>1</td><td>자사몰 UI/UX 리뉴얼 (메인·GNB·LNB·Bottom Nav)</td><td>1차 범위 확정 · M1~M4 마일스톤 수립 · 경영진 보고 준비</td><td><span class="badge b-blue">기획 진행중</span></td></tr>
+      <tr><td>2</td><td>검색 UI/UX 개선의 건</td><td>기획·디자인(Figma) 완료 · 개발 착수 대기</td><td><span class="badge b-green">디자인 완료</span></td></tr>
+      <tr><td>3</td><td>전시 모듈 개선</td><td>1차 PRD 초안 작성 · 요구사항 정의</td><td><span class="badge b-blue">기획 진행중</span></td></tr>
+      <tr><td>4</td><td>기획전 상세페이지 퍼블 작업화</td><td>퍼블 템플릿화 기획 · 개발 가능 여부 검토 요청</td><td><span class="badge b-blue">기획 진행중</span></td></tr>
+    </table>
+  </div>
+  <p class="note">단계 분포: 기획 진행중 3 · 디자인 완료(개발 대기) 1 · <b>개발 이관 0건</b> — 흐름 효율 주의 신호. 개인일감 DB 문서 15건 분포: 시작전 6 · 일감접수 4 · 기획 진행중 5.</p>
+</section>
+
+<section>
+  <h2>② 개인 일감 — 금주 처리 항목 · 우선순위 과제 (Homi)</h2>
+  <div class="grid2">
+    <ul class="plain">
+      <li>1. 전시·기획전 자동화 기획</li>
+      <li>2. 광고 매체별 EP 상품리스트 생성·팔로업</li>
+      <li>3. 상품상세 테스트 포함 마스터 준비</li>
+      <li>4. [미샤/이비엠] 시즌오프 직원쿠폰 사용가능 설정</li>
+      <li>5. 장바구니 담기 오류 관련 기획</li>
+    </ul>
+    <div>
+      <table>
+        <tr><th>우선순위 과제</th><th>진행 단계</th></tr>
+        <tr><td>[미샤/이비엠] 시즌오프 직원쿠폰 설정</td><td>고객 인터뷰 1차 완료 → 1차 PRD 완료 → <span class="badge b-amber">2차 기획 검토 예정</span></td></tr>
+        <tr><td>장바구니 담기 오류 개선</td><td><span class="badge b-blue">기획 진행중</span> (AS-IS 현황 정리)</td></tr>
+      </table>
+      <p class="note">우선순위 Top 과제 DB의 나머지 항목은 당일 갱신분 미입력.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>③ 구성원 가동률 체크</h2>
+  <table>
+    <tr><th>직군</th><th>가동 현황 (확인된 일감 기준)</th><th>판정</th></tr>
+    <tr><td>기획</td><td>동시 진행 4건 + 신규 2건 흡수 + 운영 이슈 대응(장바구니·어드민·사방넷) — 주 4~5건 기준 상회</td><td><span class="badge b-amber">과부하 주의</span></td></tr>
+    <tr><td>디자인</td><td>검색 UI/UX Figma 산출물 완료 · UI/UX 리뉴얼 시안 대기 — 개인별 할당 데이터 미입력</td><td><span class="badge b-gray">미입력(부분 확인)</span></td></tr>
+    <tr><td>퍼블리싱</td><td>기획전 상세 퍼블 템플릿화 — 개발 검토 회신 대기로 착수 전</td><td><span class="badge b-gray">대기(미입력)</span></td></tr>
+  </table>
+  <p class="note">※ 구성원별 정량 가동률(인당 할당·체류일)은 Sisun-Tasks DB 담당자 필드 데이터가 확인되지 않아 산정 보류 — 추정치를 기재하지 않음. 담당자·기간 필드 입력 정착 시 자동 산출 가능.</p>
+</section>
+
+<section>
+  <h2>④ 운영 생산성 5차원 신호등 + 커머스 KPI</h2>
+  <div class="grid2">
+    <table>
+      <tr><th>차원</th><th>판정</th><th>근거</th></tr>
+      <tr><td>처리량</td><td class="light">🟢</td><td>4건 병행 + 신규 2건 흡수 (기준 충족)</td></tr>
+      <tr><td>흐름 효율</td><td class="light">🟡</td><td>기획 단계 적체(3/4건) · 개발 이관 0건</td></tr>
+      <tr><td>블로커 해소</td><td class="light">🟡</td><td>3건 전부 외부 의존(보고 슬롯·개발 배정·개발 회신)</td></tr>
+      <tr><td>마일스톤</td><td class="light">🔴</td><td>UI/UX M1(7/3) — 경영진 보고 슬롯 미확정 시 지연 직결</td></tr>
+      <tr><td>품질·안정성</td><td class="light">🟡</td><td>장바구니 담기 오류 · 어드민 엑셀 다운로드 오류 · 사방넷 자동수집 이슈(6/10) · 해외배송 중복피킹</td></tr>
+    </table>
+    <div class="chartbox"><canvas id="radarChart"></canvas></div>
+  </div>
+  <table style="margin-top:14px">
+    <tr><th>커머스 KPI</th><th>목표(가안)</th><th>실측</th><th>평가</th></tr>
+    <tr><td>GMV</td><td>60,000만원</td><td class="kpi-pending">미입력</td><td class="kpi-pending">보류</td></tr>
+    <tr><td>CVR</td><td>2.8%</td><td class="kpi-pending">미입력</td><td class="kpi-pending">보류</td></tr>
+    <tr><td>재구매율</td><td>40%</td><td class="kpi-pending">미입력</td><td class="kpi-pending">보류</td></tr>
+    <tr><td>교차구매율</td><td>17%</td><td class="kpi-pending">미입력</td><td class="kpi-pending">보류</td></tr>
+    <tr><td>정가비중</td><td>65%</td><td class="kpi-pending">미입력</td><td class="kpi-pending">보류</td></tr>
+  </table>
+  <p class="note">※ 실측치 미입력 — 수치 추정 없이 평가 보류. 주간 KPI 대시보드(sisun-kpi-dashboard)와 연계 입력 권장.</p>
+</section>
+
+<section>
+  <h2>⑤ 리스크 Top 3 · 의사결정/협조 요청</h2>
+  <div class="risk"><b>R1 · [의사결정] UI/UX 리뉴얼 경영진 보고 슬롯</b> — M1(7/3) 확정 전제. 미확정 시 마일스톤 전체 지연.</div>
+  <div class="risk"><b>R2 · [협조] 개발(FO/BO) 담당자 미배정</b> — 개발 이관 0건의 구조적 원인. 검색 UI/UX는 산출물 완료에도 착수 불가.</div>
+  <div class="risk"><b>R3 · [품질] 운영 오류 신호 산재</b> — 장바구니·어드민 엑셀·사방넷·중복피킹. 기획 리소스의 운영 대응 전환으로 가동률 압박.</div>
+</section>
+
+<section>
+  <h2>⑥ 종합 평가 · 개선 제안</h2>
+  <p style="font-size:13.5px;line-height:1.7">
+  <b>총평:</b> 산출(기획·디자인)은 충분하나 <b>개발 이관 관문에서 흐름이 정체</b>된 한 주 — 생산성 병목은 팀 내부가 아니라 의사결정·개발 리소스 배정에 있음.<br>
+  <b>제안:</b> ① 상무 보고 슬롯을 차주 초로 선확보해 M1 리스크 해소 ② 검색 UI/UX(산출물 완료)부터 개발 착수시켜 이관 0건 해소 ③ 운영 오류 4건을 별도 트랙(핫픽스 큐)으로 분리해 기획 가동률 보호 ④ Sisun-Tasks 담당자·기간 필드 입력 정착으로 구성원별 가동률 정량화.
+  </p>
+</section>
+</div>
+<script>
+new Chart(document.getElementById('stageChart'),{type:'doughnut',data:{labels:['기획 진행중','디자인 완료(개발 대기)','신규 접수'],datasets:[{data:[3,1,2],backgroundColor:['#2E75B6','#2E9E5B','#E08A1E']}]},options:{plugins:{legend:{position:'bottom'},title:{display:true,text:'금주 과제 단계 분포'}},maintainAspectRatio:false}});
+new Chart(document.getElementById('radarChart'),{type:'radar',data:{labels:['처리량','흐름 효율','블로커 해소','마일스톤','품질·안정성'],datasets:[{label:'금주 평가 (3=양호/2=주의/1=리스크)',data:[3,2,2,1,2],backgroundColor:'rgba(46,117,182,.2)',borderColor:'#2E75B6',pointBackgroundColor:'#1F3864'}]},options:{scales:{r:{min:0,max:3,ticks:{stepSize:1}}},plugins:{legend:{position:'bottom'}},maintainAspectRatio:false}});
+</script>
+</body>
+</html>
