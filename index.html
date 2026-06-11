@@ -96,6 +96,27 @@
     .title{flex-basis:100%;order:2}
     .meta{order:3}
   }
+  /* 오늘의 진행업무 (Sisun-Tasks xlsx 3시트 · 기존 스타일 토큰 재사용) */
+  .daily-wrap{margin-bottom:30px}
+  .daily h2 .cnt{font-size:12px;color:var(--sub);font-weight:500}
+  .daily .row{cursor:pointer;align-items:flex-start}
+  .daily .row.sum{cursor:default;align-items:center}
+  .daily .pri{flex:none;min-width:42px;text-align:center;font-size:11.5px;font-weight:700;border-radius:7px;padding:4px 7px}
+  .pri-high{background:#fee2e2;color:#b91c1c}
+  .pri-mid{background:var(--yellow);color:var(--yellow-t)}
+  .pri-low{background:var(--green);color:var(--green-t)}
+  .pri-none{background:#f1f3f5;color:var(--sub)}
+  .daily .owner{color:var(--sub);font-size:12px;margin-left:8px;font-weight:400}
+  .daily .note{display:block;color:var(--sub);font-size:12px;font-weight:400;margin-top:3px;line-height:1.45}
+  .daily .period{flex:none;font-size:12px;color:var(--sub);min-width:120px;text-align:right;line-height:1.4}
+  .daily .who{flex:none;min-width:64px;font-weight:700;font-size:13px}
+  .daily .cntpill{flex:none;min-width:40px;text-align:center;font-size:11.5px;font-weight:700;background:#f1f3f5;color:var(--sub);border-radius:7px;padding:4px 7px}
+  .daily .tasklist{flex:1;font-size:13px;color:var(--ink);line-height:1.45}
+  @media(max-width:560px){
+    .daily .period{min-width:auto;text-align:left}
+    .daily .row.sum{flex-wrap:wrap}
+    .daily .tasklist{flex-basis:100%;order:3;margin-top:4px}
+  }
 </style>
 </head>
 <body>
@@ -103,7 +124,149 @@
   <header>
     <h1>시선닷컴 기획 문서 허브</h1>
     <div class="sub">Homi_개인일감 DB · 갱신일 2026-06-11 · 총 <span id="total">0</span>건 · <b>#ID</b>=Homi DB · <b>Sisun No</b>=Sisun-Tasks(클릭해 입력)</div>
-  </header>
+    </header>
+
+  <div class="daily-wrap">
+    <section class="daily">
+      <h2>📌 오늘의 진행업무 · 마스터 <span class="cnt">2026.06.11 · 8건 · Sisun-Tasks</span></h2>
+      <div class="card">
+      <a class="row" href="https://app.notion.com/p/361f6986169c80249cead80437108977" target="_blank" rel="noopener">
+        <span class="pri pri-high" title="우선순위">높음</span>
+        <span class="title">기획전 상세페이지 퍼블작업화 <span class="urg">주의</span><span class="owner">홍태원, 이연화, 임태준</span><span class="note">⚠️ 우선순위 높음·미착수(실제시작 06-02 기록 있으나 상태 일감접수). 기획전 상세 퍼블 양식화 개발검토 요청건</span></span>
+        <span class="meta">
+          <span class="badge b-yellow">일감접수</span>
+          <span class="period">2026-06-02 ~ 06-19</span>
+        </span>
+      </a>
+      <a class="row" href="https://app.notion.com/p/361f6986169c8089b77acf0f9d08179e" target="_blank" rel="noopener">
+        <span class="pri pri-mid" title="우선순위">중간</span>
+        <span class="title">검색 UI/UX 개선의 건<span class="owner">홍태원</span><span class="note">검색결과 포함 UX 개선(PC·MO). 퍼블 완료→개발 단계 진행. 모듈:검색</span></span>
+        <span class="meta">
+          <span class="badge b-green">퍼블리싱 완료</span>
+          <span class="period">2026-05-15 ~ 07-07</span>
+        </span>
+      </a>
+      <a class="row" href="https://app.notion.com/p/36df6986169c80a98aebe4f6e21cb259" target="_blank" rel="noopener">
+        <span class="pri pri-low" title="우선순위">낮음</span>
+        <span class="title">UI/UX 리뉴얼(메인, GNB, LNB, Bottom Nav)<span class="owner">홍태원, 박수민</span><span class="note">중장기 과제. WBS 일부 진행중(Milestone 수립). M1 7/3 확정 목표</span></span>
+        <span class="meta">
+          <span class="badge b-yellow">일감접수</span>
+          <span class="period">2026-05-27 ~ 07-31</span>
+        </span>
+      </a>
+      <a class="row" href="https://app.notion.com/p/372f6986169c8004abccd1a72119f625" target="_blank" rel="noopener">
+        <span class="pri pri-none" title="우선순위">미지정</span>
+        <span class="title">퍼블리싱 리뷰용 클로드 에이전트 개발 <span class="urg">주의</span><span class="owner">임태준</span><span class="note">⚠️ 요청마감(06-05) 경과·계획일 미입력. 외주 퍼블 HTML 마크업 리뷰 에이전트</span></span>
+        <span class="meta">
+          <span class="badge b-blue">개발 진행중</span>
+          <span class="period">미입력 (요청마감 06-05)</span>
+        </span>
+      </a>
+      <a class="row" href="https://app.notion.com/p/374f6986169c8043a032d33f01f9cfd8" target="_blank" rel="noopener">
+        <span class="pri pri-none" title="우선순위">미지정</span>
+        <span class="title">[전시]모듈 개선<span class="owner">홍태원</span><span class="note">기간 진행중이나 미착수. 전시 모듈 표준화·운영편집 강화</span></span>
+        <span class="meta">
+          <span class="badge b-gray">시작전</span>
+          <span class="period">2026-06-05 ~ 06-18</span>
+        </span>
+      </a>
+      <a class="row" href="https://app.notion.com/p/37bf6986169c80f092c2f33713bcef32" target="_blank" rel="noopener">
+        <span class="pri pri-none" title="우선순위">미지정</span>
+        <span class="title">MCP 구축 기획<span class="owner">김진옥</span><span class="note">ChatGPT Apps(MCP 서버) 쇼핑몰 연동 기획</span></span>
+        <span class="meta">
+          <span class="badge b-blue">기획 진행중</span>
+          <span class="period">2026-06-10 ~ 06-30</span>
+        </span>
+      </a>
+      <a class="row" href="https://app.notion.com/p/37bf6986169c8060a94fdeaf38da04a5" target="_blank" rel="noopener">
+        <span class="pri pri-none" title="우선순위">미지정</span>
+        <span class="title">스캔/단수주문송장출력 메뉴 개선<span class="owner">임태준, 홍태원, 김경환</span><span class="note">BO 운영건 처리예정. 피킹번호·조회 리스트 헤더 개선</span></span>
+        <span class="meta">
+          <span class="badge b-blue">개발 진행중</span>
+          <span class="period">2026-06-15 ~ 미입력</span>
+        </span>
+      </a>
+      <a class="row" href="https://app.notion.com/p/376f6986169c80cf8ed0f2efb590cef8" target="_blank" rel="noopener">
+        <span class="pri pri-none" title="우선순위">미지정</span>
+        <span class="title">로그아웃 상태에서 장바구니 담기 이슈 개선<span class="owner">이연화</span><span class="note">비로그인 장바구니 담기·로그인 후 병합. 기획완료→다음 단계. 모듈:전시</span></span>
+        <span class="meta">
+          <span class="badge b-green">기획 완료</span>
+          <span class="period">2026-06-05 ~ 07-31</span>
+        </span>
+      </a>
+      </div>
+    </section>
+    <section class="daily">
+      <h2>👤 담당자별 <span class="cnt">6명</span></h2>
+      <div class="card">
+      <div class="row sum">
+        <span class="who">홍태원</span>
+        <span class="cntpill">5건</span>
+        <span class="tasklist">기획전 상세페이지 퍼블작업화, 검색 UI/UX 개선의 건, UI/UX 리뉴얼, [전시]모듈 개선, 스캔/단수주문송장출력 메뉴 개선</span>
+      </div>
+      <div class="row sum">
+        <span class="who">임태준</span>
+        <span class="cntpill">3건</span>
+        <span class="tasklist">기획전 상세페이지 퍼블작업화, 퍼블리싱 리뷰용 클로드 에이전트 개발, 스캔/단수주문송장출력 메뉴 개선</span>
+      </div>
+      <div class="row sum">
+        <span class="who">이연화</span>
+        <span class="cntpill">2건</span>
+        <span class="tasklist">기획전 상세페이지 퍼블작업화, 로그아웃 상태에서 장바구니 담기 이슈 개선</span>
+      </div>
+      <div class="row sum">
+        <span class="who">박수민</span>
+        <span class="cntpill">1건</span>
+        <span class="tasklist">UI/UX 리뉴얼(메인, GNB, LNB, Bottom Nav)</span>
+      </div>
+      <div class="row sum">
+        <span class="who">김진옥</span>
+        <span class="cntpill">1건</span>
+        <span class="tasklist">MCP 구축 기획</span>
+      </div>
+      <div class="row sum">
+        <span class="who">김경환</span>
+        <span class="cntpill">1건</span>
+        <span class="tasklist">스캔/단수주문송장출력 메뉴 개선</span>
+      </div>
+      </div>
+    </section>
+    <section class="daily">
+      <h2>📊 상태별 <span class="cnt">6개 상태</span></h2>
+      <div class="card">
+      <div class="row sum">
+        <span class="badge b-blue" style="min-width:78px;text-align:center">개발 진행중</span>
+        <span class="cntpill">2건</span>
+        <span class="tasklist">퍼블리싱 리뷰용 클로드 에이전트 개발, 스캔/단수주문송장출력 메뉴 개선</span>
+      </div>
+      <div class="row sum">
+        <span class="badge b-blue" style="min-width:78px;text-align:center">기획 진행중</span>
+        <span class="cntpill">1건</span>
+        <span class="tasklist">MCP 구축 기획</span>
+      </div>
+      <div class="row sum">
+        <span class="badge b-green" style="min-width:78px;text-align:center">기획 완료</span>
+        <span class="cntpill">1건</span>
+        <span class="tasklist">로그아웃 상태에서 장바구니 담기 이슈 개선</span>
+      </div>
+      <div class="row sum">
+        <span class="badge b-green" style="min-width:78px;text-align:center">퍼블리싱 완료</span>
+        <span class="cntpill">1건</span>
+        <span class="tasklist">검색 UI/UX 개선의 건</span>
+      </div>
+      <div class="row sum">
+        <span class="badge b-yellow" style="min-width:78px;text-align:center">일감접수</span>
+        <span class="cntpill">2건</span>
+        <span class="tasklist">기획전 상세페이지 퍼블작업화, UI/UX 리뉴얼(메인, GNB, LNB, Bottom Nav)</span>
+      </div>
+      <div class="row sum">
+        <span class="badge b-gray" style="min-width:78px;text-align:center">시작전</span>
+        <span class="cntpill">1건</span>
+        <span class="tasklist">[전시]모듈 개선</span>
+      </div>
+      </div>
+    </section>
+  </div>
 
   <div class="controls">
     <div class="tabs" id="tabs">
