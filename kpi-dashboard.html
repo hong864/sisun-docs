@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>시선닷컴 주간 KPI 대시보드</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+<script crossorigin src="https://unpkg.com/recharts@2.12.7/umd/Recharts.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+<style>body{background:#fff;margin:0}#root{min-height:100vh}.boot{font-family:Arial,"맑은 고딕",sans-serif;color:#64748b;padding:40px;text-align:center}</style>
+</head>
+<body>
+<div id="root"><div class="boot">대시보드를 불러오는 중… (자바스크립트 필요)</div></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo } = React;
+const { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell } = Recharts;
+
+// ===== 디자인 토큰 =====
+const NAVY = "#1F3864";
+const BLUE = "#2E75B6";
+const GOOD = "#2E9E5B";
+const WARN = "#C0392B";
+
+const NUM_WEEKS = 13;
+const WEEKS = Array.from({ length: NUM_WEEKS }, (_, i) => `W${i + 1}`);
+const CFG_VERSION = 3; // 평가축·출처·기대효과 반영본
+
+// ===== 평가 가중치 (개인 성과 50 / 협업 20 / 비즈니스 관점 30) =====
+const AXIS_WEIGHTS = { "성과": 0.5, "협업": 0.2, "비즈니스": 0.3 };
+const AXIS_ORDER = ["성과", "협업", "비즈니스"];
+const AXIS_LABEL = { "성과": "개인 성과 (50%)", "협업": "협업 (20%)", "비즈니스": "비즈니스 관점 (30%)" };
+
+// ===== 입력 항목 =====
+const DEFAULT_PERF_INPUTS = [
+  { key: "gmv", label: "GMV(거래액)", unit: "만원", desc: "GMV = Gross Merchandise Value(총거래액). 해당 주차 총 거래액(상품 판매 합계, 환불 제외)." },
+  { key: "visitors", label: "방문자수", unit: "명", desc: "해당 주차 사이트/앱 순 방문자 수(UV). 전환율(CVR)의 분모." },
+  { key: "orders", label: "주문건수", unit: "건", desc: "결제 완료된 주문 건수. 전환율·객단가·재구매율 계산에 사용." },
+  { key: "repeatOrders", label: "재구매 주문", unit: "건", desc: "과거 구매 이력이 있는 고객의 주문 건수. 재구매율의 분자." },
+  { key: "multiBrand", label: "2개+브랜드 구매고객", unit: "명", desc: "해당 주차 2개 이상 브랜드를 구매한 고객 수. 교차구매율의 분자." },
+  { key: "buyers", label: "구매고객수", unit: "명", desc: "해당 주차 1회 이상 구매한 순 고객 수. 교차구매율의 분모." },
+  { key: "newMembers", label: "신규회원", unit: "명", desc: "해당 주차 신규 가입 회원 수. 신규 획득 규모." },
+  { key: "activeMember", label: "활성멤버십", unit: "명", desc: "활성 상태 멤버십 회원 수. 보조 모니터링 지표." },
+  { key: "fullGmv", label: "정가 거래액", unit: "만원", desc: "할인 없이 정가로 판매된 거래액. 정가 판매 비중의 분자." },
+  { key: "firstBuyers", label: "첫구매 고객", unit: "명", desc: "해당 주차 생애 첫 구매를 한 고객 수. 첫구매→재구매 전환율의 분모." },
+  { key: "firstRepeat", label: "첫구매후 재구매", unit: "건", desc: "첫 구매 고객 중 추가 구매가 발생한 건수. 첫구매→재구매 전환율의 분자." },
+];
+const DEFAULT_OPS_INPUTS = [
+  { key: "received", label: "운영요청 접수", unit: "건", desc: "기획·운영팀에 접수된 작업 요청 건수. SLA·리드타임의 분모." },
+  { key: "slaDone", label: "SLA내 처리", unit: "건", desc: "SLA = Service Level Agreement(처리 기한 약속). 기한 내 완료한 요청 건수. SLA 준수율의 분자." },
+  { key: "leadSum", label: "리드타임 합", unit: "일", desc: "모든 처리 건의 접수~완료 소요일 총합. 평균 리드타임 계산용." },
+  { key: "planned", label: "계획 릴리스", unit: "건", desc: "해당 주차 배포 예정이던 릴리스 건수. 정시율의 분모." },
+  { key: "onTime", label: "정시 릴리스", unit: "건", desc: "계획일에 맞춰 배포된 릴리스 건수. 정시율의 분자." },
+  { key: "submitted", label: "기획서 제출", unit: "건", desc: "제출된 기획서 건수. 재작업률의 분모." },
+  { key: "rework", label: "기획서 재작업", unit: "건", desc: "반려되어 수정·재작업된 기획서 건수. 재작업률의 분자." },
+  { key: "incident", label: "장애", unit: "건", desc: "서비스 중단·오작동 등 장애 발생 건수. 안정성 지표." },
+  { key: "errors", label: "오류", unit: "건", desc: "장애 미만의 오류·버그 발생 건수. 품질 지표." },
+  { key: "csInq", label: "CS 문의", unit: "건", desc: "CS = Customer Service(고객센터). 접수된 문의 건수. CS 반영률의 분모." },
+  { key: "csReflect", label: "CS 반영", unit: "건", desc: "CS = Customer Service. 문의 중 개선·조치로 반영된 건수. CS 반영률의 분자." },
+  { key: "abRun", label: "A/B 진행", unit: "건", desc: "A/B = A/B Test(대조 실험). 해당 주차 진행한 테스트 수. 유의미 도출률의 분모." },
+  { key: "abSig", label: "A/B 유의미", unit: "건", desc: "A/B = A/B Test. 통계적으로 유의한 결과를 얻은 테스트 수. 유의미 도출률의 분자." },
+  { key: "launchFeat", label: "출시 기능", unit: "건", desc: "해당 주차 출시한 기능 수. 출시후 달성률의 분모." },
+  { key: "launchAchieve", label: "출시후 달성", unit: "건", desc: "출시 기능 중 목표 KPI를 달성한 수. 출시후 달성률의 분자." },
+  { key: "fbCollect", label: "수집 피드백", unit: "건", desc: "해당 주차 수집한 고객 피드백 건수. 피드백 반영률의 분모." },
+  { key: "fbReflect", label: "반영 피드백", unit: "건", desc: "제품에 반영된 피드백 건수. 피드백 반영률의 분자." },
+];
+
+// ===== 기본 KPI (계산 명세 + 평가축·출처·기대효과) =====
+// calc: direct(src) | ratio(num÷den) / fmt: pct|won|cnt|day / hb: 높을수록 양호
+// axis: 성과|협업|비즈니스 / source: 출처(경쟁사 벤치마크) / impact: KPI 달성 시 비즈니스 기대효과
+const DEFAULT_PERF_KPIS = [
+  { key: "gmv", label: "거래액(GMV)", calc: "direct", src: "gmv", fmt: "won", target: 60000, hb: true, axis: "성과",
+    abbr: "GMV = Gross Merchandise Value (총거래액)", source: "내부 목표 · 시장규모 참고: 29CM 거래액 1조원(’24)·W컨셉 5,722억(’24) [ref 05·06]",
+    impact: "매출 규모 확대 → 플랫폼 성장·바잉파워·고정비 분산의 기반.",
+    desc: "일정 기간 발생한 총 상품 판매액. 매출 규모를 보여주는 최상위 지표." },
+  { key: "cvr", label: "구매 전환율(CVR)", calc: "ratio", num: "orders", den: "visitors", fmt: "pct", target: 0.028, hb: true, axis: "성과",
+    abbr: "CVR = Conversion Rate (구매 전환율)", source: "무신사 세분화 필터·랭킹, SSF 데이터기반 개인화 추천 [ref 01·04]",
+    impact: "같은 트래픽으로 매출↑ → 광고비 효율(ROAS) 개선, CAC 회수 가속.",
+    desc: "방문이 실제 구매로 이어진 비율. 유입 품질과 구매 동선의 효율을 진단." },
+  { key: "aov", label: "객단가(AOV)", calc: "ratio", num: "gmv", den: "orders", fmt: "won", target: 46, hb: true, axis: "성과",
+    abbr: "AOV = Average Order Value (객단가)", source: "LF몰 코디 묶음·ZARA ‘완성된 룩’ 코디 [ref 02·07] · 비교: 29CM 객단가 23만원+(’24)",
+    impact: "주문당 매출↑ → 동일 주문수로 GMV 상승, 크로스셀 수익 증대.",
+    desc: "주문 1건당 평균 결제 금액. 고가·세트·교차판매가 잘 되는지를 나타낸다." },
+  { key: "repurchase", label: "재구매율", calc: "ratio", num: "repeatOrders", den: "orders", fmt: "pct", target: 0.40, hb: true, axis: "성과",
+    source: "한섬·바바더닷컴 통합 멤버십, S.I.VILLAGE 히스토리/위시리스트 동선 [ref 03·08·09]",
+    impact: "충성 고객 매출 안정화 → 신규 의존도↓, 마케팅비 절감.",
+    desc: "전체 주문 중 기존 고객이 다시 한 주문 비중. 리텐션 핵심 지표." },
+  { key: "newMember", label: "신규 회원", calc: "direct", src: "newMembers", fmt: "cnt", target: 400, hb: true, axis: "성과",
+    source: "SSF Shop UI/UX 개편 후 20대 회원 100%+ 증가 사례 [ref 01]",
+    impact: "미래 매출 풀 확대 → LTV 창출의 입구, 회원 기반 리타게팅 가능.",
+    desc: "해당 기간 새로 가입한 회원 수. 신규 고객 획득 규모." },
+  { key: "fullRatio", label: "정가 판매 비중", calc: "ratio", num: "fullGmv", den: "gmv", fmt: "pct", target: 0.65, hb: true, axis: "비즈니스",
+    source: "한섬닷컴 ‘과도한 할인 지양’ 프리미엄 정책 [ref 03]",
+    impact: "마진율↑·브랜드 가치 보존 → 할인 의존 없는 수익 체력 확보.",
+    desc: "전체 거래액 중 정가로 팔린 비중. 할인에 기대지 않는 매출 체력." },
+  { key: "crossbuy", label: "브랜드 교차구매율", calc: "ratio", num: "multiBrand", den: "buyers", fmt: "pct", target: 0.17, hb: true, axis: "비즈니스",
+    source: "바바더닷컴·SSF 통합몰 교차구매, LF몰 통합 멤버십 포인트 [ref 08·01·02]",
+    impact: "통합몰 시너지 실현 → 고객당 매출(LTV)↑, 멀티브랜드 운영의 정당성.",
+    desc: "구매 고객 중 2개 이상 브랜드를 함께 산 비율. 통합몰 교차판매 시너지." },
+  { key: "firstToRepeat", label: "첫구매→재구매 전환율", calc: "ratio", num: "firstRepeat", den: "firstBuyers", fmt: "pct", target: 0.25, hb: true, axis: "비즈니스",
+    source: "S.I.VILLAGE 재방문 동선(히스토리/위시리스트)·바바더닷컴 AI 추천 [ref 09·08]",
+    impact: "신규의 충성 전환 → 리텐션·LTV 상승, 획득 비용 회수율 개선.",
+    desc: "처음 산 고객이 다시 구매로 이어진 비율. 신규를 단골로 정착시키는 전환력." },
+];
+const DEFAULT_OPS_KPIS = [
+  { key: "sla", label: "SLA 준수율", calc: "ratio", num: "slaDone", den: "received", fmt: "pct", target: 0.90, hb: true, axis: "협업",
+    abbr: "SLA = Service Level Agreement (서비스 수준 협약·처리 기한 약속)", source: "업계 운영 SLA 표준",
+    impact: "요청자(타팀) 신뢰·협업 속도↑ → 부서 간 병목 감소.",
+    desc: "접수된 요청 중 약속 기한 내 처리한 비율. 운영 대응 신뢰도. ↑ 양호." },
+  { key: "lead", label: "평균 리드타임", calc: "ratio", num: "leadSum", den: "received", fmt: "day", target: 2.0, hb: false, axis: "협업",
+    source: "업계 운영 리드타임 표준",
+    impact: "출시 속도↑ → 시장 기회 선점, 대기 중 기회비용 감소.",
+    desc: "요청 접수~완료까지 평균 일수. 낮을수록 양호(↓)." },
+  { key: "ontime", label: "릴리스 정시율", calc: "ratio", num: "onTime", den: "planned", fmt: "pct", target: 0.95, hb: true, axis: "협업",
+    source: "업계 프로덕트팀 출시일 100% 준수 표준",
+    impact: "로드맵 신뢰 확보 → 마케팅·MD 연계 일정 정합, 캠페인 손실 방지.",
+    desc: "계획 배포 중 일정대로 나간 비율. 출시 일정 준수 능력. ↑ 양호." },
+  { key: "rework", label: "기획서 재작업률", calc: "ratio", num: "rework", den: "submitted", fmt: "pct", target: 0.15, hb: false, axis: "협업",
+    source: "기획 품질 내부 기준",
+    impact: "재작업 비용·리드타임 손실 감소 → 협업 효율, 산출물 신뢰.",
+    desc: "제출 기획서 중 반려·재작업 비율. 기획 완성도·정합성. 낮을수록 양호(↓)." },
+  { key: "incident", label: "장애 건수", calc: "direct", src: "incident", fmt: "cnt", target: 0, hb: false, axis: "협업",
+    source: "서비스 안정성 표준(목표 0)",
+    impact: "매출 손실·신뢰 훼손 방지 → 운영 리스크 최소화.",
+    desc: "서비스 장애 사고 건수. 안정성의 핵심으로 목표는 0(↓)." },
+  { key: "errorCnt", label: "오류 건수", calc: "direct", src: "errors", fmt: "cnt", target: 0, hb: false, axis: "협업",
+    source: "품질 내부 기준(목표 0)",
+    impact: "CS 부하·품질 비용 감소 → 운영 안정성 향상.",
+    desc: "장애 미만 버그·오류 수. 품질 수준. 낮을수록 양호(↓)." },
+  { key: "csCnt", label: "CS 문의", calc: "direct", src: "csInq", fmt: "cnt", target: 100, hb: false, axis: "협업",
+    abbr: "CS = Customer Service (고객센터)", source: "무신사 리뷰·고객목소리 운영 [ref 04]",
+    impact: "불만·이탈 신호 조기 감지 → 문제 선제 대응으로 이탈 방지.",
+    desc: "고객센터 문의 건수. 불편·문제의 발생량. 낮을수록 양호(↓)." },
+  { key: "csRate", label: "CS 반영률", calc: "ratio", num: "csReflect", den: "csInq", fmt: "pct", target: 0.90, hb: true, axis: "협업",
+    abbr: "CS = Customer Service (고객센터)", source: "무신사 리뷰 반영·고객 목소리 운영 [ref 04]",
+    impact: "고객 만족·재구매 유지 → 이탈 방지, 브랜드 신뢰.",
+    desc: "문의 중 개선·조치로 반영된 비율. 고객 목소리의 처리율. ↑ 양호." },
+  { key: "ab", label: "A/B 유의미 도출률", calc: "ratio", num: "abSig", den: "abRun", fmt: "pct", target: 0.50, hb: true, axis: "비즈니스",
+    abbr: "A/B = A/B Test (대조 실험)", source: "데이터 기반 의사결정 업계 표준",
+    impact: "의사결정 품질↑ → 잘못된 기획에 드는 실패 비용 감소.",
+    desc: "진행 A/B 중 통계적으로 유의한 결론을 얻은 비율. 실험 설계의 질. ↑ 양호." },
+  { key: "launch", label: "출시후 KPI 달성률", calc: "ratio", num: "launchAchieve", den: "launchFeat", fmt: "pct", target: 0.80, hb: true, axis: "비즈니스",
+    abbr: "KPI = Key Performance Indicator (핵심성과지표)", source: "업계 프로덕트팀 출시 KPI 표준(내부)",
+    impact: "기획 리소스 ROI 검증 → 가설 적중률↑, 자원 배분 정당화.",
+    desc: "출시 기능 중 목표 KPI를 달성한 비율. 기획 가설의 적중률. ↑ 양호." },
+  { key: "feedback", label: "고객 피드백 반영률", calc: "ratio", num: "fbReflect", den: "fbCollect", fmt: "pct", target: 0.75, hb: true, axis: "협업",
+    source: "업계 프로덕트팀 ‘3개월 내 75% 반영’ 표준(주간 환산)",
+    impact: "제품 개선 사이클 가속 → 고객 체감 가치·충성도 상승.",
+    desc: "수집 피드백 중 제품 반영 비율. 업계 표준의 주간 환산 벤치마킹. ↑ 양호." },
+];
+
+const SAMPLE_PERF = { gmv: 58000, visitors: 95000, orders: 2400, repeatOrders: 950, multiBrand: 380, buyers: 2100, newMembers: 420, activeMember: 8500, fullGmv: 37000, firstBuyers: 1300, firstRepeat: 300 };
+const SAMPLE_OPS = { received: 45, slaDone: 42, leadSum: 85, planned: 12, onTime: 11, submitted: 20, rework: 3, incident: 0, errors: 2, csInq: 95, csReflect: 88, abRun: 6, abSig: 3, launchFeat: 5, launchAchieve: 4, fbCollect: 40, fbReflect: 31 };
+
+const FMT_OPTIONS = [
+  { v: "pct", label: "% (비율)" }, { v: "won", label: "만원 (금액)" },
+  { v: "cnt", label: "건/명 (개수)" }, { v: "day", label: "일 (기간)" },
+];
+
+const mem = {};
+const store = {
+  get: (k) => { try { if (typeof window !== "undefined" && window.storage && window.storage.getItem) return Promise.resolve(window.storage.getItem(k)); if (typeof localStorage !== "undefined") return Promise.resolve(localStorage.getItem(k)); } catch (e) {} return Promise.resolve(mem[k] ?? null); },
+  set: (k, v) => { try { if (typeof window !== "undefined" && window.storage && window.storage.setItem) { window.storage.setItem(k, v); return; } if (typeof localStorage !== "undefined") { localStorage.setItem(k, v); return; } } catch (e) {} mem[k] = v; },
+};
+
+const num = (x) => (x === "" || x == null || isNaN(Number(x)) ? 0 : Number(x));
+const ratio = (a, b) => (b ? a / b : 0);
+const computeKpi = (s, d) => s.calc === "direct" ? num(d[s.src]) : (s.calc === "ratio" ? ratio(num(d[s.num]), num(d[s.den])) : 0);
+const labelOf = (inputs, key) => (inputs.find((i) => i.key === key) || {}).label || key || "—";
+const formulaText = (s, inputs) => s.calc === "direct" ? `직접 입력: ${labelOf(inputs, s.src)}` : `${labelOf(inputs, s.num)} ÷ ${labelOf(inputs, s.den)}`;
+const achieveOf = (k, v) => k.hb ? (k.target ? v / k.target : 0) : (v === 0 ? 1 : (k.target === 0 ? 0 : k.target / v));
+const fmt = (v, type) => {
+  if (v == null || isNaN(v)) return "-";
+  if (type === "pct") return (v * 100).toFixed(1) + "%";
+  if (type === "won") return Math.round(v).toLocaleString() + "만원";
+  if (type === "day") return v.toFixed(1) + "일";
+  return Math.round(v).toLocaleString();
+};
+const emptyRows = () => WEEKS.map(() => ({}));
+const visible = (arr) => arr.filter((k) => !k.hidden && k.label);
+
+function App() {
+  const [tab, setTab] = useState("perf");
+  const [week, setWeek] = useState(0);
+  const [manage, setManage] = useState(false);
+  const [hover, setHover] = useState(null);
+  const [chartKpi, setChartKpi] = useState(null);
+  const [loaded, setLoaded] = useState(false);
+
+  const [perfInputs, setPerfInputs] = useState(DEFAULT_PERF_INPUTS);
+  const [opsInputs, setOpsInputs] = useState(DEFAULT_OPS_INPUTS);
+  const [perfKpis, setPerfKpis] = useState(visible(DEFAULT_PERF_KPIS));
+  const [opsKpis, setOpsKpis] = useState(DEFAULT_OPS_KPIS);
+  const [perf, setPerf] = useState(() => { const t = emptyRows(); t[0] = { ...SAMPLE_PERF }; return t; });
+  const [ops, setOps] = useState(() => { const t = emptyRows(); t[0] = { ...SAMPLE_OPS }; return t; });
+
+  useEffect(() => {
+    let alive = true;
+    Promise.all([
+      store.get("sisun_cfg_ver"), store.get("sisun_perfInputs"), store.get("sisun_opsInputs"),
+      store.get("sisun_perfKpis"), store.get("sisun_opsKpis"), store.get("sisun_perf"),
+      store.get("sisun_ops"), store.get("sisun_week"), store.get("sisun_tab"),
+    ]).then(([ver, pi, oi, pk, ok, pd, od, w, t]) => {
+      if (!alive) return;
+      const P = (s) => { try { return s ? JSON.parse(s) : null; } catch (e) { return null; } };
+      if (Number(ver) === CFG_VERSION) {
+        const a = P(pi), b = P(oi), c = P(pk), d = P(ok);
+        if (a) setPerfInputs(a); if (b) setOpsInputs(b); if (c) setPerfKpis(c); if (d) setOpsKpis(d);
+      }
+      const pdv = P(pd), odv = P(od);
+      if (pdv) setPerf(pdv); if (odv) setOps(odv);
+      if (w != null && w !== "") setWeek(Number(w));
+      if (t) setTab(t);
+      setLoaded(true);
+    });
+    return () => { alive = false; };
+  }, []);
+
+  useEffect(() => { if (loaded) { store.set("sisun_cfg_ver", String(CFG_VERSION)); store.set("sisun_perfInputs", JSON.stringify(perfInputs)); } }, [perfInputs, loaded]);
+  useEffect(() => { if (loaded) store.set("sisun_opsInputs", JSON.stringify(opsInputs)); }, [opsInputs, loaded]);
+  useEffect(() => { if (loaded) store.set("sisun_perfKpis", JSON.stringify(perfKpis)); }, [perfKpis, loaded]);
+  useEffect(() => { if (loaded) store.set("sisun_opsKpis", JSON.stringify(opsKpis)); }, [opsKpis, loaded]);
+  useEffect(() => { if (loaded) store.set("sisun_perf", JSON.stringify(perf)); }, [perf, loaded]);
+  useEffect(() => { if (loaded) store.set("sisun_ops", JSON.stringify(ops)); }, [ops, loaded]);
+  useEffect(() => { store.set("sisun_week", String(week)); }, [week]);
+  useEffect(() => { store.set("sisun_tab", tab); }, [tab]);
+
+  const isEval = tab === "eval";
+  const dataTab = tab === "ops" ? "ops" : "perf";
+  const inputs = dataTab === "perf" ? perfInputs : opsInputs;
+  const setInputs = dataTab === "perf" ? setPerfInputs : setOpsInputs;
+  const kpis = dataTab === "perf" ? perfKpis : opsKpis;
+  const setKpis = dataTab === "perf" ? setPerfKpis : setOpsKpis;
+  const data = dataTab === "perf" ? perf : ops;
+  const setData = dataTab === "perf" ? setPerf : setOps;
+
+  const cur = data[week] || {};
+  const prev = week > 0 ? data[week - 1] || {} : null;
+  const activeChartKpi = chartKpi && kpis.find((k) => k.key === chartKpi) ? chartKpi : (kpis[0] && kpis[0].key);
+
+  const cards = useMemo(() => kpis.map((k) => {
+    const v = computeKpi(k, cur);
+    const pv = prev ? computeKpi(k, prev) : null;
+    const wow = pv != null && pv !== 0 ? v / pv - 1 : null;
+    const ach = achieveOf(k, v);
+    const good = k.hb ? v >= k.target : v <= k.target;
+    return { ...k, v, wow, achieve: ach, good, formula: formulaText(k, inputs) };
+  }), [kpis, cur, prev, inputs]);
+
+  const chartDef = kpis.find((x) => x.key === activeChartKpi) || kpis[0];
+  const chartData = useMemo(() => {
+    if (!chartDef) return [];
+    return WEEKS.map((w, i) => ({ week: w, val: Number(computeKpi(chartDef, data[i] || {}).toFixed(4)) }));
+  }, [chartDef, data]);
+
+  // ===== 종합 평가 (가중) =====
+  const evalRows = useMemo(() => {
+    const make = (list, d) => list.map((k) => {
+      const v = computeKpi(k, d[week] || {});
+      return { ...k, v, achieve: Math.max(0, Math.min(1, achieveOf(k, v))), good: k.hb ? v >= k.target : v <= k.target };
+    });
+    return [...make(perfKpis, perf), ...make(opsKpis, ops)];
+  }, [perfKpis, opsKpis, perf, ops, week]);
+  const axisAgg = AXIS_ORDER.map((ax) => {
+    const items = evalRows.filter((k) => (k.axis || "성과") === ax);
+    const avg = items.length ? items.reduce((s, k) => s + k.achieve, 0) / items.length : 0;
+    return { axis: ax, weight: AXIS_WEIGHTS[ax], avg, contrib: avg * AXIS_WEIGHTS[ax], n: items.length, items };
+  });
+  const composite = axisAgg.reduce((s, a) => s + a.contrib, 0);
+
+  const setCell = (rowIdx, key, val) => { const n = val === "" ? 0 : Number(val); setData(data.map((row, i) => (i === rowIdx ? { ...row, [key]: n } : row))); };
+
+  const [showAddInput, setShowAddInput] = useState(false);
+  const [showAddKpi, setShowAddKpi] = useState(false);
+  const [ni, setNi] = useState({ label: "", unit: "건", desc: "" });
+  const [nk, setNk] = useState({ label: "", calc: "ratio", src: "", numK: "", den: "", fmt: "pct", target: "", hb: "true", axis: "성과", abbr: "", source: "", impact: "", desc: "" });
+
+  const addInput = () => {
+    if (!ni.label.trim()) return;
+    setInputs([...inputs, { key: "in_" + Date.now(), label: ni.label.trim(), unit: ni.unit || "건", desc: ni.desc.trim(), custom: true }]);
+    setNi({ label: "", unit: "건", desc: "" }); setShowAddInput(false);
+  };
+  const removeInput = (key) => { if (confirm("이 입력 항목을 삭제할까요? 연결된 지표 계산이 0이 될 수 있습니다.")) setInputs(inputs.filter((i) => i.key !== key)); };
+  const addKpi = () => {
+    if (!nk.label.trim()) return;
+    if (nk.calc === "ratio" && (!nk.numK || !nk.den)) { alert("비율 지표는 분자·분모 입력항목을 선택하세요."); return; }
+    if (nk.calc === "direct" && !nk.src) { alert("직접값 지표는 입력항목을 선택하세요."); return; }
+    const spec = { key: "kpi_" + Date.now(), label: nk.label.trim(), calc: nk.calc, fmt: nk.fmt, target: num(nk.target), hb: nk.hb === "true", axis: nk.axis, custom: true };
+    if (nk.calc === "direct") spec.src = nk.src; else { spec.num = nk.numK; spec.den = nk.den; }
+    if (nk.abbr.trim()) spec.abbr = nk.abbr.trim();
+    if (nk.source.trim()) spec.source = nk.source.trim();
+    if (nk.impact.trim()) spec.impact = nk.impact.trim();
+    if (nk.desc.trim()) spec.desc = nk.desc.trim();
+    setKpis([...kpis, spec]);
+    setNk({ label: "", calc: "ratio", src: "", numK: "", den: "", fmt: "pct", target: "", hb: "true", axis: "성과", abbr: "", source: "", impact: "", desc: "" });
+    setShowAddKpi(false);
+  };
+  const removeKpi = (key) => { if (confirm("이 지표를 삭제할까요?")) setKpis(kpis.filter((k) => k.key !== key)); };
+  const editKpi = (key, patch) => setKpis(kpis.map((k) => (k.key === key ? { ...k, ...patch } : k)));
+  const resetDefaults = () => {
+    if (!confirm("현재 탭의 지표·입력항목 구성을 기본값으로 되돌릴까요? (입력 수치는 유지)")) return;
+    if (dataTab === "perf") { setPerfInputs(DEFAULT_PERF_INPUTS); setPerfKpis(visible(DEFAULT_PERF_KPIS)); }
+    else { setOpsInputs(DEFAULT_OPS_INPUTS); setOpsKpis(DEFAULT_OPS_KPIS); }
+  };
+
+  const inp = "border rounded px-2 py-1 text-sm";
+  const axisColor = { "성과": BLUE, "협업": "#7A5BB0", "비즈니스": GOOD };
+
+  return (
+    <div style={{ fontFamily: "Arial, '맑은 고딕', sans-serif" }} className="w-full max-w-6xl mx-auto p-4 text-slate-800">
+      <div className="rounded-lg p-5 mb-4 text-white" style={{ background: NAVY }}>
+        <div className="text-xl font-bold">시선닷컴 · 서비스 기획팀 주간 KPI 대시보드</div>
+        <div className="text-sm opacity-80 mt-1">임원보고용 · 평가 가중치(개인 성과 50 / 협업 20 / 비즈니스 30) · 경쟁사 벤치마크 반영 · 자동 저장</div>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div className="flex rounded-md overflow-hidden border" style={{ borderColor: BLUE }}>
+          {[["perf", "성과 KPI"], ["ops", "운영 KPI"], ["eval", "종합 평가"]].map(([k, l]) => (
+            <button key={k} onClick={() => setTab(k)} className="px-4 py-2 text-sm font-semibold"
+              style={{ background: tab === k ? BLUE : "white", color: tab === k ? "white" : BLUE }}>{l}</button>
+          ))}
+        </div>
+        {!isEval && (
+          <div className="flex items-center gap-2 text-sm">
+            <button onClick={() => setManage((m) => !m)} className="px-3 py-1.5 rounded font-semibold border"
+              style={{ borderColor: manage ? GOOD : BLUE, color: manage ? GOOD : BLUE, background: "white" }}>
+              {manage ? "✓ 관리 완료" : "⚙ 지표·항목 관리"}
+            </button>
+            <span className="font-semibold" style={{ color: NAVY }}>기준 주차</span>
+            <select value={week} onChange={(e) => setWeek(Number(e.target.value))} className="border rounded px-3 py-1.5" style={{ borderColor: BLUE }}>
+              {WEEKS.map((w, i) => <option key={w} value={i}>{w}</option>)}
+            </select>
+          </div>
+        )}
+        {isEval && (
+          <div className="flex items-center gap-2 text-sm">
+            <span className="font-semibold" style={{ color: NAVY }}>기준 주차</span>
+            <select value={week} onChange={(e) => setWeek(Number(e.target.value))} className="border rounded px-3 py-1.5" style={{ borderColor: BLUE }}>
+              {WEEKS.map((w, i) => <option key={w} value={i}>{w}</option>)}
+            </select>
+          </div>
+        )}
+      </div>
+
+      {/* ===== 종합 평가 탭 ===== */}
+      {isEval && (
+        <div>
+          <div className="rounded-lg border bg-white p-5 mb-5 flex flex-wrap items-center gap-6" style={{ borderColor: "#E2E8F0" }}>
+            <div className="text-center">
+              <div className="text-xs text-slate-500 mb-1">{WEEKS[week]} 종합 가중점수</div>
+              <div className="text-4xl font-bold" style={{ color: composite >= 0.9 ? GOOD : composite >= 0.7 ? BLUE : WARN }}>{(composite * 100).toFixed(1)}<span className="text-lg">점</span></div>
+              <div className="text-xs text-slate-400 mt-1">성과×50% + 협업×20% + 비즈니스×30%</div>
+            </div>
+            <div className="flex-1 grid grid-cols-3 gap-3" style={{ minWidth: 320 }}>
+              {axisAgg.map((a) => (
+                <div key={a.axis} className="rounded-lg border p-3" style={{ borderColor: "#E2E8F0" }}>
+                  <div className="text-xs font-semibold" style={{ color: axisColor[a.axis] }}>{AXIS_LABEL[a.axis]}</div>
+                  <div className="text-2xl font-bold mt-1" style={{ color: NAVY }}>{(a.avg * 100).toFixed(0)}%</div>
+                  <div className="text-xs text-slate-400">달성률 · 지표 {a.n}개</div>
+                  <div className="h-1.5 bg-slate-100 rounded mt-2 overflow-hidden"><div className="h-full" style={{ width: `${Math.min(100, a.avg * 100)}%`, background: axisColor[a.axis] }} /></div>
+                  <div className="text-xs mt-1 text-slate-500">기여 {(a.contrib * 100).toFixed(1)}점</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-lg border bg-white p-4 overflow-x-auto" style={{ borderColor: "#E2E8F0" }}>
+            <div className="font-semibold mb-3" style={{ color: NAVY }}>지표별 평가 · 출처 · 기대효과 <span className="text-xs font-normal text-slate-400">({WEEKS[week]})</span></div>
+            <table className="text-xs border-collapse w-full">
+              <thead><tr className="text-left">
+                {["평가축", "지표", "현재값", "목표", "달성률", "출처(벤치마크)", "비즈니스 기대효과"].map((h) => (
+                  <th key={h} className="px-2 py-1.5 border-b font-semibold" style={{ color: NAVY }}>{h}</th>
+                ))}
+              </tr></thead>
+              <tbody>
+                {AXIS_ORDER.flatMap((ax) => evalRows.filter((k) => (k.axis || "성과") === ax).map((k) => (
+                  <tr key={k.key} className="hover:bg-slate-50 align-top">
+                    <td className="px-2 py-1.5 border-b"><span className="px-2 py-0.5 rounded-full text-white" style={{ background: axisColor[ax], fontSize: 10 }}>{ax}</span></td>
+                    <td className="px-2 py-1.5 border-b font-semibold" style={{ color: NAVY }}>{k.label}</td>
+                    <td className="px-2 py-1.5 border-b">{fmt(k.v, k.fmt)}</td>
+                    <td className="px-2 py-1.5 border-b text-slate-500">{fmt(k.target, k.fmt)}{!k.hb && " ↓"}</td>
+                    <td className="px-2 py-1.5 border-b font-semibold" style={{ color: k.good ? GOOD : WARN }}>{(k.achieve * 100).toFixed(0)}%</td>
+                    <td className="px-2 py-1.5 border-b text-slate-500" style={{ maxWidth: 260 }}>{k.source || "—"}</td>
+                    <td className="px-2 py-1.5 border-b text-slate-600" style={{ maxWidth: 240 }}>{k.impact || "—"}</td>
+                  </tr>
+                )))}
+              </tbody>
+            </table>
+            <div className="text-xs text-slate-400 mt-3">달성률은 평가용으로 100%에서 상한 처리(목표 초과분 미반영). ↓ 지표는 목표 이하일수록 100%에 수렴. 출처 [ref NN]은 benchmark-sisun 레퍼런스 번호.</div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== 관리 패널 ===== */}
+      {!isEval && manage && (
+        <div className="rounded-lg border bg-white p-4 mb-5" style={{ borderColor: GOOD }}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="font-bold" style={{ color: NAVY }}>{dataTab === "perf" ? "성과" : "운영"} 지표·입력항목 관리</div>
+            <button onClick={resetDefaults} className="text-xs underline text-slate-500">기본값으로 복원</button>
+          </div>
+          <div className="text-sm font-semibold mb-2" style={{ color: BLUE }}>지표(KPI) — 목표·방향·평가축 수정, 삭제, 추가</div>
+          <div className="overflow-x-auto mb-2">
+            <table className="text-xs w-full border-collapse">
+              <thead><tr className="text-left text-slate-500">
+                <th className="px-2 py-1">지표</th><th className="px-2 py-1">평가축</th><th className="px-2 py-1">산식</th><th className="px-2 py-1">목표</th><th className="px-2 py-1">방향</th><th className="px-2 py-1"></th>
+              </tr></thead>
+              <tbody>
+                {kpis.map((k) => (
+                  <tr key={k.key} className="border-t">
+                    <td className="px-2 py-1 font-semibold">{k.label}{k.custom && <span className="ml-1 px-1 rounded text-white" style={{ background: GOOD, fontSize: 10 }}>신규</span>}</td>
+                    <td className="px-2 py-1">
+                      <select className={inp} style={{ borderColor: "#CBD5E1" }} value={k.axis || "성과"} onChange={(e) => editKpi(k.key, { axis: e.target.value })}>
+                        {AXIS_ORDER.map((a) => <option key={a} value={a}>{a}</option>)}
+                      </select>
+                    </td>
+                    <td className="px-2 py-1 text-slate-500">{formulaText(k, inputs)}</td>
+                    <td className="px-2 py-1">
+                      <input type="number" step={k.fmt === "pct" ? "0.1" : "1"} className={inp} style={{ width: 76, borderColor: "#CBD5E1" }}
+                        value={k.fmt === "pct" ? +(k.target * 100).toFixed(2) : k.target}
+                        onChange={(e) => editKpi(k.key, { target: k.fmt === "pct" ? num(e.target.value) / 100 : num(e.target.value) })} />
+                      <span className="text-slate-400"> {k.fmt === "pct" ? "%" : k.fmt === "won" ? "만원" : k.fmt === "day" ? "일" : ""}</span>
+                    </td>
+                    <td className="px-2 py-1">
+                      <select className={inp} style={{ borderColor: "#CBD5E1" }} value={k.hb ? "true" : "false"} onChange={(e) => editKpi(k.key, { hb: e.target.value === "true" })}>
+                        <option value="true">↑ 높을수록</option><option value="false">↓ 낮을수록</option>
+                      </select>
+                    </td>
+                    <td className="px-2 py-1"><button onClick={() => removeKpi(k.key)} className="text-red-500">삭제</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {!showAddKpi ? (
+            <button onClick={() => setShowAddKpi(true)} className="text-xs px-3 py-1 rounded text-white mb-4" style={{ background: BLUE }}>+ 지표 추가</button>
+          ) : (
+            <div className="border rounded p-3 mb-4 grid grid-cols-2 gap-2" style={{ borderColor: "#CBD5E1" }}>
+              <input className={inp} placeholder="지표 이름 (예: 모바일 전환율)" value={nk.label} onChange={(e) => setNk({ ...nk, label: e.target.value })} />
+              <select className={inp} value={nk.axis} onChange={(e) => setNk({ ...nk, axis: e.target.value })}>
+                {AXIS_ORDER.map((a) => <option key={a} value={a}>{AXIS_LABEL[a]}</option>)}
+              </select>
+              <select className={inp} value={nk.calc} onChange={(e) => setNk({ ...nk, calc: e.target.value })}>
+                <option value="ratio">비율 (분자 ÷ 분모)</option><option value="direct">직접 입력값</option>
+              </select>
+              <select className={inp} value={nk.fmt} onChange={(e) => setNk({ ...nk, fmt: e.target.value })}>
+                {FMT_OPTIONS.map((o) => <option key={o.v} value={o.v}>{o.label}</option>)}
+              </select>
+              {nk.calc === "direct" ? (
+                <select className={inp + " col-span-2"} value={nk.src} onChange={(e) => setNk({ ...nk, src: e.target.value })}>
+                  <option value="">입력항목 선택</option>{inputs.map((i) => <option key={i.key} value={i.key}>{i.label}</option>)}
+                </select>
+              ) : (
+                <div className="flex gap-1 col-span-2">
+                  <select className={inp} style={{ flex: 1 }} value={nk.numK} onChange={(e) => setNk({ ...nk, numK: e.target.value })}><option value="">분자</option>{inputs.map((i) => <option key={i.key} value={i.key}>{i.label}</option>)}</select>
+                  <select className={inp} style={{ flex: 1 }} value={nk.den} onChange={(e) => setNk({ ...nk, den: e.target.value })}><option value="">분모</option>{inputs.map((i) => <option key={i.key} value={i.key}>{i.label}</option>)}</select>
+                </div>
+              )}
+              <input className={inp} type="number" placeholder={nk.fmt === "pct" ? "목표(%) 예:30" : "목표값"} value={nk.target} onChange={(e) => setNk({ ...nk, target: e.target.value })} />
+              <select className={inp} value={nk.hb} onChange={(e) => setNk({ ...nk, hb: e.target.value })}><option value="true">↑ 높을수록 양호</option><option value="false">↓ 낮을수록 양호</option></select>
+              <input className={inp + " col-span-2"} placeholder="출처/벤치마크(선택) 예: 한섬닷컴 [ref 03]" value={nk.source} onChange={(e) => setNk({ ...nk, source: e.target.value })} />
+              <input className={inp + " col-span-2"} placeholder="비즈니스 기대효과(선택)" value={nk.impact} onChange={(e) => setNk({ ...nk, impact: e.target.value })} />
+              <input className={inp + " col-span-2"} placeholder="개념 설명(선택, 툴팁)" value={nk.desc} onChange={(e) => setNk({ ...nk, desc: e.target.value })} />
+              <div className="col-span-2 flex gap-2">
+                <button onClick={addKpi} className="text-xs px-3 py-1 rounded text-white" style={{ background: GOOD }}>저장</button>
+                <button onClick={() => setShowAddKpi(false)} className="text-xs px-3 py-1 rounded border text-slate-500">취소</button>
+              </div>
+            </div>
+          )}
+          <div className="text-sm font-semibold mb-2" style={{ color: BLUE }}>입력 항목 — 추가·삭제</div>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {inputs.map((i) => (
+              <span key={i.key} className="text-xs px-2 py-1 rounded border flex items-center gap-1" style={{ borderColor: "#CBD5E1" }}>
+                {i.label} <span className="text-slate-400">({i.unit})</span>
+                <button onClick={() => removeInput(i.key)} className="text-red-500 ml-1">×</button>
+              </span>
+            ))}
+          </div>
+          {!showAddInput ? (
+            <button onClick={() => setShowAddInput(true)} className="text-xs px-3 py-1 rounded text-white" style={{ background: BLUE }}>+ 입력 항목 추가</button>
+          ) : (
+            <div className="border rounded p-3 grid grid-cols-2 gap-2" style={{ borderColor: "#CBD5E1" }}>
+              <input className={inp} placeholder="항목 이름" value={ni.label} onChange={(e) => setNi({ ...ni, label: e.target.value })} />
+              <input className={inp} placeholder="단위 (건/명/만원)" value={ni.unit} onChange={(e) => setNi({ ...ni, unit: e.target.value })} />
+              <input className={inp + " col-span-2"} placeholder="설명(선택, 툴팁)" value={ni.desc} onChange={(e) => setNi({ ...ni, desc: e.target.value })} />
+              <div className="col-span-2 flex gap-2">
+                <button onClick={addInput} className="text-xs px-3 py-1 rounded text-white" style={{ background: GOOD }}>저장</button>
+                <button onClick={() => setShowAddInput(false)} className="text-xs px-3 py-1 rounded border text-slate-500">취소</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ===== KPI 카드 (성과/운영 탭) ===== */}
+      {!isEval && (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+        {cards.map((c) => (
+          <div key={c.key} onMouseEnter={() => setHover(c.key)} onMouseLeave={() => setHover((h) => (h === c.key ? null : h))}
+            className="rounded-lg border bg-white p-3 shadow-sm" style={{ borderColor: "#E2E8F0", position: "relative" }}>
+            <div className="flex items-center gap-1 text-xs text-slate-500" title={c.desc || c.label} style={{ cursor: "help" }}>
+              <span className="truncate">{c.label}</span>
+              <span className="shrink-0 px-1 rounded-full text-white" style={{ background: axisColor[c.axis] || BLUE, fontSize: 9 }}>{c.axis || "성과"}</span>
+              <span className="shrink-0 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full text-white" style={{ background: BLUE, fontSize: 9 }}>i</span>
+            </div>
+            {hover === c.key && (
+              <div style={{ position: "absolute", left: 0, top: "100%", marginTop: 4, zIndex: 50, width: 270, background: NAVY, color: "white", borderRadius: 8, padding: 12, textAlign: "left", boxShadow: "0 8px 24px rgba(0,0,0,0.25)" }}>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{c.label} · <span style={{ color: "#FFD966" }}>{AXIS_LABEL[c.axis] || c.axis}</span></div>
+                {c.abbr && <div style={{ fontSize: 11, marginBottom: 4, color: "#FFD966", fontWeight: 600 }}>{c.abbr}</div>}
+                <div style={{ fontSize: 11, marginBottom: 4, color: "#9DB8D6" }}>산식: {c.formula}</div>
+                {c.desc && <div style={{ fontSize: 11, lineHeight: 1.55, marginBottom: 6 }}>{c.desc}</div>}
+                {c.source && <div style={{ fontSize: 11, lineHeight: 1.5 }}><b style={{ color: "#9DB8D6" }}>출처</b> {c.source}</div>}
+                {c.impact && <div style={{ fontSize: 11, lineHeight: 1.5, marginTop: 3 }}><b style={{ color: "#9DB8D6" }}>기대효과</b> {c.impact}</div>}
+                <div style={{ fontSize: 11, marginTop: 8, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.2)" }}>목표 {fmt(c.target, c.fmt)}{!c.hb && " · 낮을수록 양호(↓)"}</div>
+              </div>
+            )}
+            <div className="text-2xl font-bold mt-1" style={{ color: NAVY }}>{fmt(c.v, c.fmt)}</div>
+            <div className="text-xs text-slate-400 mt-0.5">목표 {fmt(c.target, c.fmt)}{!c.hb && " ↓"}</div>
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full text-white" style={{ background: c.good ? GOOD : WARN }}>{c.good ? "양호" : (c.hb ? "미달" : "주의")}</span>
+              <span className="text-xs" style={{ color: c.wow == null ? "#94A3B8" : c.wow >= 0 ? GOOD : WARN }}>{c.wow == null ? "WoW -" : `WoW ${c.wow >= 0 ? "▲" : "▼"}${Math.abs(c.wow * 100).toFixed(1)}%`}</span>
+            </div>
+            <div className="h-1.5 bg-slate-100 rounded mt-2 overflow-hidden"><div className="h-full" style={{ width: `${Math.min(100, Math.max(0, c.achieve * 100))}%`, background: c.good ? GOOD : BLUE }} /></div>
+          </div>
+        ))}
+        {cards.length === 0 && <div className="text-sm text-slate-400 col-span-4 py-6 text-center">지표가 없습니다. ⚙ 관리에서 추가하세요.</div>}
+      </div>
+      )}
+
+      {/* ===== 차트 ===== */}
+      {!isEval && chartDef && (
+        <div className="rounded-lg border bg-white p-4 mb-5" style={{ borderColor: "#E2E8F0" }}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="font-semibold" style={{ color: NAVY }}>주간 추이</div>
+            <select value={activeChartKpi} onChange={(e) => setChartKpi(e.target.value)} className="border rounded px-3 py-1 text-sm" style={{ borderColor: BLUE }}>
+              {kpis.map((k) => <option key={k.key} value={k.key}>{k.label}</option>)}
+            </select>
+          </div>
+          <ResponsiveContainer width="100%" height={260}>
+            {chartDef.fmt === "pct" ? (
+              <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#EEF2F7" />
+                <XAxis dataKey="week" fontSize={12} /><YAxis tickFormatter={(v) => (v * 100).toFixed(0) + "%"} fontSize={12} />
+                <Tooltip formatter={(v) => fmt(v, chartDef.fmt)} />
+                <ReferenceLine y={chartDef.target} stroke={WARN} strokeDasharray="4 4" label={{ value: "목표", fontSize: 11, fill: WARN }} />
+                <Line type="monotone" dataKey="val" stroke={BLUE} strokeWidth={2.5} dot={{ r: 3 }} />
+              </LineChart>
+            ) : (
+              <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#EEF2F7" />
+                <XAxis dataKey="week" fontSize={12} /><YAxis fontSize={12} />
+                <Tooltip formatter={(v) => fmt(v, chartDef.fmt)} />
+                <ReferenceLine y={chartDef.target} stroke={WARN} strokeDasharray="4 4" label={{ value: "목표", fontSize: 11, fill: WARN }} />
+                <Bar dataKey="val" radius={[3, 3, 0, 0]}>
+                  {chartData.map((d, i) => { const ok = chartDef.hb ? d.val >= chartDef.target : (d.val > 0 ? d.val <= chartDef.target : true); return <Cell key={i} fill={i === week ? NAVY : ok ? BLUE : "#9DB8D6"} />; })}
+                </Bar>
+              </BarChart>
+            )}
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* ===== 입력 표 ===== */}
+      {!isEval && (
+      <div className="rounded-lg border bg-white p-4 overflow-x-auto" style={{ borderColor: "#E2E8F0" }}>
+        <div className="font-semibold mb-3" style={{ color: NAVY }}>{dataTab === "perf" ? "성과" : "운영"} raw 데이터 입력 <span className="text-xs font-normal text-slate-400">(셀에 직접 입력 · 자동 저장)</span></div>
+        <table className="text-xs border-collapse w-full">
+          <thead>
+            <tr>
+              <th className="sticky left-0 bg-white text-left px-2 py-1.5 border-b font-semibold" style={{ color: NAVY, minWidth: 150 }}>항목</th>
+              {WEEKS.map((w, i) => (<th key={w} className="px-1 py-1.5 border-b text-center font-semibold" style={{ color: i === week ? "white" : NAVY, background: i === week ? BLUE : "transparent", minWidth: 56 }}>{w}</th>))}
+            </tr>
+          </thead>
+          <tbody>
+            {inputs.map((it) => (
+              <tr key={it.key} className="hover:bg-slate-50">
+                <td className="sticky left-0 bg-white px-2 py-1 border-b">
+                  <span title={it.desc} className="cursor-help border-b border-dotted border-slate-300">{it.label}</span>
+                  <span className="text-slate-400"> ({it.unit})</span>
+                  {it.desc && <span title={it.desc} className="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full text-white cursor-help align-middle" style={{ background: BLUE, fontSize: 9 }}>i</span>}
+                </td>
+                {WEEKS.map((w, i) => (
+                  <td key={w} className="border-b p-0">
+                    <input type="number" value={data[i] && data[i][it.key] ? data[i][it.key] : ""} onChange={(e) => setCell(i, it.key, e.target.value)}
+                      className="w-full px-1 py-1 text-right outline-none focus:bg-blue-50" style={{ color: "#0000FF", background: i === week ? "#F0F6FC" : "transparent", minWidth: 56 }} />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      )}
+
+      <div className="text-xs text-slate-400 mt-4 leading-relaxed">
+        평가 가중치: 개인 성과 50% · 협업 20% · 비즈니스 관점 30%. 목표값 설정: 한섬닷컴·신세계 빌리지 등 경쟁사 벤치마크 참고(출처는 각 지표 툴팁/종합 평가 탭에 표기, [ref NN]=benchmark-sisun 레퍼런스).
+        최신 트렌드로 지표가 바뀌면 <b>⚙ 지표·항목 관리</b>에서 추가/수정하세요. 모든 변경은 자동 저장됩니다.
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+
+</script>
+</body>
+</html>
