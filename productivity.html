@@ -34,7 +34,18 @@ ul.plain{list-style:none;font-size:13px;}
 ul.plain li{padding:7px 0;border-bottom:1px solid #f0f2f5;line-height:1.5;}
 .risk{border-left:3px solid var(--warn);background:#fdf6f5;padding:10px 12px;border-radius:0 8px 8px 0;margin-bottom:8px;font-size:13px;line-height:1.5;}
 .kpi-pending{color:var(--gray);font-style:italic;}
-@media(max-width:860px){.cards{grid-template-columns:repeat(2,1fr);}.grid2{grid-template-columns:1fr;}}
+/* ④ 5차원 신호등 표 가독성 개선 */
+.signal-grid{grid-template-columns:1.7fr 1fr;}
+.signal-table{table-layout:fixed;}
+.signal-table th:nth-child(1),.signal-table td:nth-child(1){width:96px;white-space:nowrap;font-weight:600;}
+.signal-table th:nth-child(2),.signal-table td:nth-child(2){width:48px;text-align:center;}
+.signal-table td:nth-child(2){vertical-align:middle;}
+.signal-table th:nth-child(3),.signal-table td:nth-child(3){width:auto;word-break:keep-all;line-height:1.65;color:#374151;}
+/* 운영 KPI 산출 매핑 / 연동 제약·대안 표 가독성 */
+.map-table{table-layout:fixed;}
+.map-table th:nth-child(1),.map-table td:nth-child(1){width:210px;word-break:keep-all;line-height:1.5;font-weight:600;}
+.map-table th:nth-child(2),.map-table td:nth-child(2){width:auto;word-break:keep-all;line-height:1.7;color:#374151;}
+@media(max-width:860px){.cards{grid-template-columns:repeat(2,1fr);}.grid2{grid-template-columns:1fr;}.signal-grid{grid-template-columns:1fr;}.map-table th:nth-child(1),.map-table td:nth-child(1){width:130px;}}
 </style>
 </head>
 <body>
@@ -101,8 +112,8 @@ ul.plain li{padding:7px 0;border-bottom:1px solid #f0f2f5;line-height:1.5;}
 
 <section>
   <h2>④ 운영 생산성 5차원 신호등 + 커머스 KPI</h2>
-  <div class="grid2">
-    <table>
+  <div class="grid2 signal-grid">
+    <table class="signal-table">
       <tr><th>차원</th><th>판정</th><th>근거</th></tr>
       <tr><td>처리량</td><td class="light">🟢</td><td>4건 병행 + 신규 2건 흡수 (기준 충족)</td></tr>
       <tr><td>흐름 효율</td><td class="light">🟡</td><td>기획 단계 적체(3/4건) · 개발 이관 0건</td></tr>
@@ -155,13 +166,13 @@ ul.plain li{padding:7px 0;border-bottom:1px solid #f0f2f5;line-height:1.5;}
     <tr><td>커머스 KPI 목표 (가안)</td><td>GMV 60,000만원 · CVR 2.8% · 재구매율 40% · 교차구매율 17% · 정가비중 65% — 업계 표준 기반 가안. 실측치 미입력 시 평가 보류.</td></tr>
     <tr><td>평가 주기</td><td>매일 08:00 자동 점검 — 동일 파일(productivity.html) 덮어쓰기, 기준 시점 당일/금주.</td></tr>
   </table>
-  <table style="margin-top:12px">
-    <tr><th>운영 KPI 산출 매핑 (Sisun-Tasks → KPI, 매핑안 확정)</th><th>산출 로직 · 사용 필드</th></tr>
-    <tr><td>✅ 자동 (일감 데이터로 바로 산출) — 6종</td><td>운영요청 접수(Created time·일감 생성자) · 평균 리드타임(Σ(실제 종료일−실제 시작일)÷완료 건수) · 릴리스 정시율(계획 종료일·지연 여부≠아니오 비율) · SLA 준수율(완료군 중 기한 내 비율, 기준=계획 종료일) · CS 문의(유형="CS 접수 건 대응") · CS 반영률(CS 일감 중 완료 비율)</td></tr>
-    <tr><td>⚠️ 잠정 (분류 기준 확정 필요) — 3종</td><td>기획서 제출(유형 기획류 일감 수) · 장애 건수(잠정: 프로젝트 [ITS] 개발 시스템 개선/오류) · 오류 건수(잠정: 위 프로젝트에서 분리)</td></tr>
-    <tr><td>✋ 수기 (당분간 직접 입력) — 4종</td><td>기획서 재작업률(전용 상태값 없음) · A/B 유의미 도출률 · 출시후 KPI 달성률(방문수·거래수·수익 비활성) · 고객 피드백 반영률(전용 필드 없음)</td></tr>
+  <table class="map-table" style="margin-top:12px">
+    <tr><th>운영 KPI 산출 매핑 <br>(Sisun-Tasks → KPI, 매핑안 확정)</th><th>산출 로직 · 사용 필드</th></tr>
+    <tr><td>✅ 자동 <br>(일감 데이터로 바로 산출) — 6종</td><td>운영요청 접수(Created time·일감 생성자) · 평균 리드타임(Σ(실제 종료일−실제 시작일)÷완료 건수) · 릴리스 정시율(계획 종료일·지연 여부≠아니오 비율) · SLA 준수율(완료군 중 기한 내 비율, 기준=계획 종료일) · CS 문의(유형="CS 접수 건 대응") · CS 반영률(CS 일감 중 완료 비율)</td></tr>
+    <tr><td>⚠️ 잠정 <br>(분류 기준 확정 필요) — 3종</td><td>기획서 제출(유형 기획류 일감 수) · 장애 건수(잠정: 프로젝트 [ITS] 개발 시스템 개선/오류) · 오류 건수(잠정: 위 프로젝트에서 분리)</td></tr>
+    <tr><td>✋ 수기 <br>(당분간 직접 입력) — 4종</td><td>기획서 재작업률(전용 상태값 없음) · A/B 유의미 도출률 · 출시후 KPI 달성률(방문수·거래수·수익 비활성) · 고객 피드백 반영률(전용 필드 없음)</td></tr>
   </table>
-  <table style="margin-top:12px">
+  <table class="map-table" style="margin-top:12px">
     <tr><th>연동 제약 · 대안</th><th>내용</th></tr>
     <tr><td>제약</td><td>Notion 도구에 행 조건 조회·집계 API(query_data_sources) 미노출 — fetch는 스키마만, search는 의미검색 25건 한도로 <b>정확한 전수 카운트 불가</b>. 자동 집계 라이브 연동은 현 상태로는 불안정 → 미확보 수치는 "미입력" 처리.</td></tr>
     <tr><td>대안 (우선순위)</td><td>① Notion 뷰 생성(상태별/프로젝트별/담당자별 보드 뷰로 Notion 내 모니터링) ② 주간 1회 집계 → 대시보드 운영입력 채움(가장 안정) ③ 행 조회 도구 개방 시 진짜 라이브 연동 전환.</td></tr>
